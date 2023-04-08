@@ -1,11 +1,16 @@
 <div class="mat-elevation-z8">
-  {{ iterationProps | json }}
+  <div *ngIf="billDetails">
+    {{ billDetails | json }}
+  </div>
+  <div *ngIf="summary">
+    {{ summary | json }}
+  </div>
   <table mat-table [dataSource]="bills">
     <ng-container [matColumnDef]="p" *ngFor="let p of iterationProps">
       <th mat-header-cell *matHeaderCellDef>{{ p }}</th>
       <td mat-cell *matCellDef="let bill">
         <ng-container *ngIf="shouldRenderLink(p); else regularTemplate">
-          <div (click)="handleUrlClick(p, bill)">View Info</div>
+          <div (click)="handleUrlClick(bill)">View Info</div>
         </ng-container>
         <ng-template #regularTemplate>
           <div>
