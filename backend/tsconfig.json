@@ -9,8 +9,15 @@
     "forceConsistentCasingInFileNames": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "strictPropertyInitialization": false
+    "strictPropertyInitialization": false,
+    "paths": {
+      "@shared/*": ["./shared/*"]
+    }
   },
-  "include": ["src/**/*"],
+  "include": [
+    "src/**/*",
+    "shared/Bill.model.ts",
+    "shared/LatestAction.model.ts"
+  ],
   "exclude": ["node_modules"]
 }

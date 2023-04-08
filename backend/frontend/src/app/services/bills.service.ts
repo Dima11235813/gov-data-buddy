@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { IBill } from '@shared/Bill.model';
 
 @Injectable({
   providedIn: 'root',
@@ -10,7 +11,10 @@ export class BillsService {
 
   constructor(private http: HttpClient) { }
 
-  getBills(): Observable<any> {
-    return this.http.get(this.API_URL);
+  getBills(): Observable<IBill[]> {
+    return this.http.get<IBill[]>(this.API_URL)
+  }
+  getBillInfo(url: string): Observable<any> {
+    return this.http.get<any>(url)
   }
 }

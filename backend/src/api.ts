@@ -6,7 +6,7 @@ import { Repository } from 'typeorm';
 import { Bill } from './entities/Bill';
 import { LatestAction } from './entities/LatestAction';
 import { plainToClass } from 'class-transformer';
-import { IBill } from './entities/bill.model';
+import { IBill } from '../shared/Bill.model';
 import { validate } from 'class-validator';
 
 dotenv.config();
