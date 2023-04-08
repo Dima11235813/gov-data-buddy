@@ -16,7 +16,7 @@ export class BillsComponent implements OnInit {
 
   ngOnInit(): void {
     this.billsService.getBills().subscribe((data) => {
-      this.bills = data.bills;
+      this.bills = data;
     });
   }
 }
