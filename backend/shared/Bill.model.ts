@@ -14,7 +14,7 @@ export enum BillPropEnum {
     url = "url",
 }
 
-export interface IBill {
+export interface BillDto {
     [BillPropEnum.id]: number;
     [BillPropEnum.searchQuery]: string;
     [BillPropEnum.congress]: number;

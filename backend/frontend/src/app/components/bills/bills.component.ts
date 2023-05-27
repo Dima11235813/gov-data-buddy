@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { BillPropEnum, IBill } from '@shared/Bill.model';
-import { BillsService } from '../services/bills.service';
+import { BillDto, BillPropEnum } from '@shared/Bill.model';
+import { BillDtoHelper } from 'src/app/domain/dto-helpers/bill-dto.helper';
+import { BillsService } from 'src/app/service/bills.service';
 
 @Component({
   selector: 'app-bills',
@@ -8,15 +9,25 @@ import { BillsService } from '../services/bills.service';
   styleUrls: ['./bills.component.scss']
 })
 export class BillsComponent implements OnInit {
-  bills: IBill[] = [];
+  bills: BillDto[] = [];
   billDetails: any;
-  displayedColumns: string[] = Object.values(BillPropEnum)
+  displayedColumns: BillPropEnum[] = Object.values(BillPropEnum)
 
   /** We're doing a custom template column for latest action */
-  iterationProps = this.displayedColumns.filter(p => p !== BillPropEnum.latestAction)
+  iterationProps: BillPropEnum[] = this.displayedColumns.filter(p => p !== BillPropEnum.latestAction) ?? []
   summary: any;
-
   constructor(private billsService: BillsService) { }
+
+  getProperty = (bill: BillDto, prop: BillPropEnum) => {
+    if (BillDtoHelper.propIsDate(prop)) {
+      return BillDtoHelper.getTimeDisplayString(bill, prop)
+    } else if (BillDtoHelper.propContainsDateWithNotNeededData(prop)) {
+      return BillDtoHelper.getTimeFromQuery(bill)
+    }
+    else {
+      return bill[prop]
+    }
+  }
 
   ngOnInit(): void {
     this.billsService.getBills().subscribe((data) => {
@@ -28,7 +39,7 @@ export class BillsComponent implements OnInit {
     return p === BillPropEnum.url
   }
 
-  handleUrlClick = (bill: IBill): void => {
+  handleUrlClick = (bill: BillDto): void => {
     console.log(`Fetching data for ${bill[BillPropEnum.url]}`)
     this.billsService.getBillDetails(bill[BillPropEnum.url]).subscribe(this.handleBillDetails);
   }

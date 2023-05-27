@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { IBill } from '@shared/Bill.model';
-import { Observable, of } from 'rxjs';
+import { BillDto } from '@shared/Bill.model';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -12,8 +12,8 @@ export class BillsService {
 
   constructor(private http: HttpClient) { }
 
-  getBills(): Observable<IBill[]> {
-    return this.http.get<IBill[]>(this.API_URL)
+  getBills(): Observable<BillDto[]> {
+    return this.http.get<BillDto[]>(this.API_URL)
   }
   getBillSummary = (url: string): Observable<any> => {
     const composedUrl = `${this.API_URL_ROOT}/bill${url}`
