@@ -5,10 +5,11 @@ import "reflect-metadata";
 // import initDb from './database/db';
 
 import cors from 'cors';
-import { getBills } from './api';
+import { getBills } from './api/bill.api';
 import { AppDataSource } from "./datasource/sqlite-datasource";
 import { Bill } from './entities/Bill';
 import { BillsController } from './controllers/bill.controller';
+import { MembersController } from './controllers/member.controller';
 
 var corsOptions = {
     origin: 'http://localhost:4200',
@@ -26,10 +27,13 @@ const router = Router();
 AppDataSource.initialize()
     .then(async () => {
         console.log('Connected to the database, setting up routes...');
-
+        //TODO Integrate all into nest framework
+        //BILL
         router.get('/bill', BillsController.getBillsByQuery)
         router.get('/bill/:congress/:billType/:billNumber', BillsController.getBillDetails);
         router.get('/bill/:congress/:billType/:billNumber/summaries', BillsController.getBillSummary);
+        //MEMBER
+        router.get('/member', MembersController.getMembersByQuery);
         app.use('/', router)
         app.listen(port, () => {
             console.log(`Server is running on port ${port}`);

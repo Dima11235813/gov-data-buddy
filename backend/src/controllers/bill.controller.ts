@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { Request, Response } from 'express';
-import { getBills } from "../api";
+import { getBills } from "../api/bill.api";
 import { AppDataSource } from "../datasource/sqlite-datasource";
 import { Bill } from "../entities/Bill";
 

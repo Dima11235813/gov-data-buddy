@@ -4,14 +4,14 @@ import { validate } from 'class-validator';
 import dotenv from 'dotenv';
 import { Request, Response } from 'express';
 import { Repository } from 'typeorm';
-import { BillDto } from '../shared/Bill.model';
-import { Bill } from './entities/Bill';
+import { BillDto } from '../../shared/Bill.model';
+import { Bill } from '../entities/Bill';
 
 dotenv.config();
 
 const API_URL = 'https://api.congress.gov/v3/bill';
 
-const fetchData = async (billRepository: Repository<BillDto>, queryParams: string) => {
+const fetchBillData = async (billRepository: Repository<BillDto>, queryParams: string) => {
     const { API_DATA_GOV } = process.env;
 
     const existingData = await billRepository.findBy({ searchQuery: queryParams });
@@ -26,6 +26,7 @@ const fetchData = async (billRepository: Repository<BillDto>, queryParams: strin
     const response = await axios.get(`${API_URL}?${queryParams}&api_key=${API_DATA_GOV}`, {
         headers: { accept: 'application/json' },
     });
+    //TODO Move to generic pattern since we want to use this fetch data function for any table
 
     const bills: BillDto[] = response.data.bills
     const decoratedBills = bills.map((b: BillDto) => plainToClass(Bill, {
@@ -50,7 +51,7 @@ export const getBills = async (req: Request, res: Response, billRepository: Repo
     console.log(`\nQuery params: ${JSON.stringify(queryParams)}`);
 
     try {
-        const data = await fetchData(billRepository, queryParams);
+        const data = await fetchBillData(billRepository, queryParams);
         res.json(data);
     } catch (error) {
         console.error(error);
