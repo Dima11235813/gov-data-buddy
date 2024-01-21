@@ -5,7 +5,7 @@ import { validate } from 'class-validator';
 import dotenv from 'dotenv';
 import { Request, Response } from 'express';
 import { Repository } from 'typeorm';
-import { Member } from '../entities/Member';
+import { Member } from '../entity/MemberEntity';
 
 export const getMembers = async (
     req: Request,
@@ -49,9 +49,9 @@ async function fetchMemberData(memberRepository: Repository<Member>, queryParams
     console.log(data)
 
     // Save members data to database
-    // for (const member of data.members) {
-    //     await memberRepository.save(member);
-    // }
+    for (const member of data.members) {
+        await memberRepository.save(member);
+    }
 
     return data;
 }

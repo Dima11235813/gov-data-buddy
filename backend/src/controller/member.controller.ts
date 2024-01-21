@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Request, Response } from 'express';
 import { getMembers } from "../api/member.api";
 import { AppDataSource } from "../datasource/sqlite-datasource";
-import { Member } from "../entities/Member";
+import { Member } from "../entity/MemberEntity";
 
 export namespace MembersController {
     const memberRepository = AppDataSource.manager.getRepository(Member);

@@ -6,8 +6,8 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
 } from 'typeorm';
-import { Depiction } from './Depiction';
-import { Served } from './Served';
+import { Depiction } from './DepictionEntity';
+import { Served } from './ServedEntity';
 import { IsNotEmpty, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -16,7 +16,7 @@ export class Member {
     @PrimaryGeneratedColumn()
     id: number;
 
-    
+
     @Column()
     @IsNotEmpty()
     searchQuery: string;
@@ -31,7 +31,7 @@ export class Member {
     depiction: Depiction;
 
     @Column({ nullable: true })
-    district: string | null;
+    district: string
 
     @Column()
     @IsNotEmpty()

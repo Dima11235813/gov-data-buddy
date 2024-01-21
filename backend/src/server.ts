@@ -5,11 +5,9 @@ import "reflect-metadata";
 // import initDb from './database/db';
 
 import cors from 'cors';
-import { getBills } from './api/bill.api';
-import { AppDataSource } from "./datasource/sqlite-datasource";
-import { Bill } from './entities/Bill';
-import { BillsController } from './controllers/bill.controller';
-import { MembersController } from './controllers/member.controller';
+import { BillsController } from './controller/bill.controller';
+import { MembersController } from './controller/member.controller';
+import { AppDataSource } from './datasource/sqlite-datasource';
 
 var corsOptions = {
     origin: 'http://localhost:4200',

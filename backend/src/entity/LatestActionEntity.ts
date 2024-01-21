@@ -3,7 +3,7 @@ import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 import { IsNotEmpty } from 'class-validator';
 
 @Entity()
-export class LatestAction {
+export class LatestActionEntity {
   @PrimaryGeneratedColumn()
   id: number;
 

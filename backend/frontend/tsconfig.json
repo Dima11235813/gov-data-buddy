@@ -25,7 +25,8 @@
       "@service/*": ["../shared/*"],
       "@domain/*": ["../domain/*"],
       "@component/*": ["../component/*"],
-      "@pipe/*": ["../pipe/*"]
+      "@pipe/*": ["../pipe/*"],
+      "@mock/*": ["../mock/*"]
     }
   },
   "angularCompilerOptions": {

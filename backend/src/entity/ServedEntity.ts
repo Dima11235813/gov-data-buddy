@@ -6,7 +6,7 @@ import { IsNotEmpty } from 'class-validator';
 
 export class SenateTerm {
     @Column({ nullable: true })
-    end: number | null;
+    end: number
 
     @Column()
     @IsNotEmpty()

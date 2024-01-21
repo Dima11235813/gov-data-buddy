@@ -11,7 +11,11 @@
     "experimentalDecorators": true,
     "strictPropertyInitialization": false,
     "paths": {
-      "@shared/*": ["./shared/*"]
+      "@shared/*": ["./shared/*"],
+      "@api/*": ["../api/*"],
+      "@controller/*": ["../controller/*"],
+      "@database/*": ["../database/*"],
+      "@entity/*": ["../entity/*"],
     }
   },
   "include": [

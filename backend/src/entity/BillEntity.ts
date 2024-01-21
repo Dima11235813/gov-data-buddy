@@ -8,7 +8,7 @@ import {
     JoinColumn,
     OneToOne,
 } from 'typeorm';
-import { LatestAction } from './LatestAction';
+import { LatestActionEntity } from './LatestActionEntity';
 import { IsNotEmpty, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -16,7 +16,7 @@ import { Type } from 'class-transformer';
 
 
 @Entity()
-export class Bill {
+export class BillEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -48,12 +48,12 @@ export class Bill {
     @UpdateDateColumn()
     updateDate: Date;
 
-    @OneToOne(() => LatestAction, { cascade: true, eager: true }) //EXPLANATION OF THE OPTIONS: https://typeorm.io/#/one-to-one-relations
+    @OneToOne(() => LatestActionEntity, { cascade: true, eager: true }) //EXPLANATION OF THE OPTIONS: https://typeorm.io/#/one-to-one-relations
     //Explanation of cascase and eager: https://stackoverflow.com/questions/50093144/typeorm-what-does-cascade-true-mean    
     @JoinColumn()
     @ValidateNested()
-    @Type(() => LatestAction)
-    latestAction: LatestAction;
+    @Type(() => LatestActionEntity)
+    latestAction: LatestActionEntity;
 
     @Column({ type: 'text' })
     url: string;

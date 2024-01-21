@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { APP_INITIALIZER, ErrorHandler, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http';
 
@@ -8,6 +8,11 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { BillsComponent } from './components/bills/bills.component';
 import { MaterialModule } from './shared/material/material.module';
 import { FriendlyTimePipe } from './pipe/display-time-ago.pipe';
+import { AppConfigService } from './service/app-config/app-config.service';
+import { LoggingService } from './service/logging/logging.service';
+import { ErrorService } from './service/error/error.service';
+
+export const initConfig = (configService: AppConfigService) => configService.init
 
 @NgModule({
   declarations: [
@@ -23,7 +28,20 @@ import { FriendlyTimePipe } from './pipe/display-time-ago.pipe';
     HttpClientModule,
     MaterialModule,
   ],
-  providers: [],
+  providers: [
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initConfig,
+      deps: [AppConfigService],
+      multi: true,
+    },
+    LoggingService,
+    {
+      provide: ErrorHandler,
+      useClass: ErrorService,
+
+    },
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
