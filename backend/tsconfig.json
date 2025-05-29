@@ -2,6 +2,8 @@
   "compilerOptions": {
     "target": "es6",
     "module": "commonjs",
+    "lib": ["es2015", "es2016", "es2017", "es2018", "es2019", "es2020", "esnext"],
+    "types": ["node"],
     "outDir": "./dist",
     "strict": true,
     "esModuleInterop": true,
@@ -21,7 +23,8 @@
   "include": [
     "src/**/*",
     "shared/Bill.model.ts",
-    "shared/LatestAction.model.ts"
+    "shared/LatestAction.model.ts",
+    "scripts/**/*"
   ],
   "exclude": ["node_modules"]
 }
