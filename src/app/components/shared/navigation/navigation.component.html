@@ -1,0 +1,46 @@
+<nav class="main-navigation">
+  <div class="nav-container">
+    <div class="nav-brand">
+      <a routerLink="/" class="brand-link">
+        <mat-icon class="brand-icon">account_balance</mat-icon>
+        <span class="brand-text">Government Data Buddy</span>
+      </a>
+    </div>
+
+    <div class="nav-menu">
+      <a mat-button routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+        <mat-icon>home</mat-icon>
+        <span>Home</span>
+      </a>
+      <a mat-button routerLink="/bills" routerLinkActive="active">
+        <mat-icon>description</mat-icon>
+        <span>Bills</span>
+      </a>
+      <a mat-button routerLink="/committee" routerLinkActive="active">
+        <mat-icon>account_balance</mat-icon>
+        <span>Committees</span>
+      </a>
+    </div>
+
+    <div class="nav-actions">
+      <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Menu">
+        <mat-icon>menu</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item routerLink="/" [routerLinkActiveOptions]="{exact: true}">
+      <mat-icon>home</mat-icon>
+      <span>Home</span>
+    </button>
+    <button mat-menu-item routerLink="/bills">
+      <mat-icon>description</mat-icon>
+      <span>Bills</span>
+    </button>
+    <button mat-menu-item routerLink="/committee">
+      <mat-icon>account_balance</mat-icon>
+      <span>Committees</span>
+    </button>
+  </mat-menu>
+</nav>

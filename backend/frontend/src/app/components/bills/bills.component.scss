@@ -1,3 +1,82 @@
-table {
-    width: 100%;
+.bills-container {
+  padding: 1rem 0;
+
+  mat-card {
+    margin-bottom: 1rem;
+
+    mat-card-content {
+      .loading {
+        text-align: center;
+        padding: 2rem;
+
+        mat-spinner {
+          margin: 0 auto 1rem;
+        }
+
+        p {
+          color: #666;
+          margin: 0;
+        }
+      }
+
+      .bills-list {
+        .bill-item {
+          border-bottom: 1px solid #e0e0e0;
+          padding: 1.5rem 0;
+
+          &:last-child {
+            border-bottom: none;
+          }
+
+          h3 {
+            margin: 0 0 1rem 0;
+            color: #1e3a8a;
+            font-size: 1.2rem;
+          }
+
+          p {
+            margin: 0.5rem 0;
+            color: #555;
+
+            strong {
+              color: #333;
+            }
+          }
+
+          button {
+            margin-top: 1rem;
+          }
+        }
+      }
+
+      .no-bills {
+        text-align: center;
+        padding: 3rem;
+        color: #666;
+
+        p {
+          margin: 0;
+          font-size: 1.1rem;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .bills-container {
+    padding: 0.5rem;
+
+    mat-card-content {
+      .bills-list {
+        .bill-item {
+          padding: 1rem 0;
+
+          h3 {
+            font-size: 1.1rem;
+          }
+        }
+      }
+    }
+  }
 }  

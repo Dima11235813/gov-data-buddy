@@ -1,0 +1,71 @@
+.agency-table-card {
+  margin: 2rem 0;
+
+  mat-card {
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .table-container {
+    overflow-x: auto;
+
+    .agency-table {
+      width: 100%;
+      min-width: 600px;
+
+      th {
+        font-weight: 600;
+        color: #1e3a8a;
+      }
+
+      td {
+        padding: 1rem 0.5rem;
+      }
+
+      mat-chip {
+        min-height: 24px;
+        font-size: 0.75rem;
+      }
+
+      button {
+        &:hover {
+          background: rgba(59, 130, 246, 0.1);
+        }
+      }
+    }
+
+    .no-data {
+      text-align: center;
+      padding: 3rem;
+      color: #666;
+
+      mat-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+      }
+
+      p {
+        margin: 0;
+        font-size: 1.1rem;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .agency-table-card {
+    margin: 1rem 0;
+
+    .table-container {
+      .agency-table {
+        min-width: 100%;
+        font-size: 0.9rem;
+
+        th, td {
+          padding: 0.5rem 0.25rem;
+        }
+      }
+    }
+  }
+}

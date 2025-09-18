@@ -1,42 +1,23 @@
-import { NgModule } from '@angular/core';
-import { RouterModule } from '@angular/router';
-import { StoreModule } from '@ngrx/store';
-
-//Reducers
-import { counterReducer } from 'src/app/reducers/counter.reducer';
-
-//components
-import { DemoButtonComponent } from 'src/app/components/demo-button/demo-button.component';
-import { DemoCounterComponent } from 'src/app/components/demo-counter/demo-counter.component';
-import { HomePageComponent } from './home-page.component';
-
-//Services
-import { homePageRoutes } from './home-page.routing';
-import { SharedModule } from 'src/app/shared/shared.module';
-import { AgencyTableCardComponent } from 'src/app/components/agency-table-card/agency-table-card.component';
-import { agencyReducer } from 'src/app/reducers/agency.reducer';
+import { NgModule } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { RouterModule } from "@angular/router";
+import { HomePageComponent } from "./home-page.component";
+import { homePageRoutes } from "./home-page.routing";
+import { SharedComponentsModule } from "../../components/shared/shared-components.module";
 
 @NgModule({
   declarations: [
-    HomePageComponent,
-    DemoButtonComponent,
-    DemoCounterComponent,
-    AgencyTableCardComponent
+    HomePageComponent
   ],
   imports: [
-    SharedModule,
-    StoreModule.forRoot(
-      {
-        count: counterReducer,
-        agencies: agencyReducer
-      }),
-    RouterModule.forChild(homePageRoutes)
+    CommonModule,
+    RouterModule.forChild(homePageRoutes),
+    SharedComponentsModule
   ],
   providers: [
   ],
   exports: [
-    HomePageComponent,
-    SharedModule
+    HomePageComponent
   ]
 })
 export class HomePageModule { }
