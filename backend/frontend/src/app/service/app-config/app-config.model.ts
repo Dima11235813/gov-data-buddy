@@ -7,12 +7,14 @@ export interface IAppConfig {
 
   SENTRY_INSTRUMENTATION_KEY: string
   API_URL: string
+  API_ROOT: string
 
   SESSION_TIMEOUT_TIME: string
 }
 
 export class DefaultConfig implements IAppConfig {
   API_URL = "";
+  API_ROOT = "";
   SENTRY_INSTRUMENTATION_KEY = "";
   SESSION_TIMEOUT_TIME = "";
   USE_MOCK_DATA = false;
