@@ -11,6 +11,7 @@ import { PolicyAreaEntity } from "../entity/PolicyAreaEntity";
 import { RequestEntity } from "../entity/RequestEntity";
 import { SponsorEntity } from "../entity/SponsorEntity";
 import { CBOCostEstimateEntity } from "../entity/CboCostEstimateEntity";
+import { CommitteeReport } from "../entity/CommitteeReportEntity";
 
 export const AppDataSource = new DataSource({
   type: 'sqlite',
@@ -24,6 +25,7 @@ export const AppDataSource = new DataSource({
     //BILL DETAILS
     BillDetailsEntity,
     CBOCostEstimateEntity,
+    CommitteeReport,
     ActionEntity,
     PolicyAreaEntity,
     SponsorEntity,

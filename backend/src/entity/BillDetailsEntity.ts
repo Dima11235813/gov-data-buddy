@@ -28,8 +28,7 @@ export class BillDetailsEntity {
     @JoinColumn()
     cboCostEstimates: CBOCostEstimateEntity;
 
-    @OneToMany(() => CommitteeReport, committeeReport => committeeReport.id,  { nullable: true })
-    @JoinColumn()
+    @OneToMany(() => CommitteeReport, committeeReport => committeeReport.billDetails,  { nullable: true })
     committeeReports: CommitteeReport[];
 
     @OneToOne(() => CountAndUrlEntity)
