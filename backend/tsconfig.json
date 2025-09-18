@@ -1,13 +1,30 @@
 {
-    "compilerOptions": {
-      "target": "es6",
-      "module": "commonjs",
-      "outDir": "./dist",
-      "strict": true,
-      "esModuleInterop": true,
-      "skipLibCheck": true,
-      "forceConsistentCasingInFileNames": true
-    },
-    "include": ["src/**/*"],
-    "exclude": ["node_modules"]
-  }
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "lib": ["es2015", "es2016", "es2017", "es2018", "es2019", "es2020", "esnext"],
+    "types": ["node"],
+    "outDir": "./dist",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "strictPropertyInitialization": false,
+    "paths": {
+      "@shared/*": ["./shared/*"],
+      "@api/*": ["../api/*"],
+      "@controller/*": ["../controller/*"],
+      "@database/*": ["../database/*"],
+      "@entity/*": ["../entity/*"],
+    }
+  },
+  "include": [
+    "src/**/*",
+    "shared/Bill.model.ts",
+    "shared/LatestAction.model.ts",
+    "scripts/**/*"
+  ],
+  "exclude": ["node_modules"]
+}
