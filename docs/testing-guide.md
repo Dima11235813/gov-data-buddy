@@ -1,10 +1,169 @@
 # Testing Guide
 
-This guide covers both unit testing and end-to-end (e2e) testing for the Government Data Buddy frontend application.
+This guide covers both unit testing and end-to-end (e2e) testing for the Government Data Buddy application, including both frontend and backend testing strategies.
+
+## Backend Testing
+
+### Unit Testing Setup
+
+Backend unit tests are written using Jest and Supertest for API testing.
+
+#### Prerequisites
+
+1. Install test dependencies:
+   ```bash
+   cd backend
+   npm install
+   ```
+
+2. Set up test database:
+   - Tests use SQLite in-memory database
+   - Database is automatically created/destroyed for each test run
+
+#### Running Backend Tests
+
+```bash
+# Run all backend tests
+cd backend && npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage
+npm run test:cov
+
+# Run specific test file
+npm test bill.controller.test.ts
+```
+
+#### Writing Backend Unit Tests
+
+Backend tests are located in `src/__tests__/` and follow this structure:
+
+```typescript
+import { Request, Response } from 'express';
+import { MyController } from '../controller/my.controller';
+
+describe('MyController', () => {
+  let mockRequest: Partial<Request>;
+  let mockResponse: Partial<Response>;
+  let mockJson: jest.Mock;
+  let mockStatus: jest.Mock;
+
+  beforeEach(() => {
+    mockJson = jest.fn();
+    mockStatus = jest.fn().mockReturnThis();
+    mockResponse = {
+      json: mockJson,
+      status: mockStatus
+    };
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('myMethod', () => {
+    it('should handle valid input', async () => {
+      mockRequest = {
+        params: { id: '123' },
+        body: { name: 'Test' }
+      };
+
+      await MyController.myMethod(mockRequest as Request, mockResponse as Response);
+
+      expect(mockStatus).toHaveBeenCalledWith(200);
+      expect(mockJson).toHaveBeenCalledWith({ success: true });
+    });
+
+    it('should handle invalid input', async () => {
+      mockRequest = {
+        params: {} // Missing required params
+      };
+
+      await MyController.myMethod(mockRequest as Request, mockResponse as Response);
+
+      expect(mockStatus).toHaveBeenCalledWith(400);
+      expect(mockJson).toHaveBeenCalledWith({
+        message: 'Missing required parameters'
+      });
+    });
+  });
+});
+```
+
+#### Test Structure
+
+```
+backend/src/
+├── __tests__/
+│   └── setup.ts                 # Jest setup and database configuration
+├── controller/
+│   └── __tests__/
+│       ├── bill.controller.test.ts
+│       └── committee.controller.test.ts
+├── api/
+│   └── __tests__/
+│       ├── bill.api.test.ts
+│       └── committee.api.test.ts
+└── entity/
+    └── __tests__/
+        ├── bill-entity.test.ts
+        └── committee-entity.test.ts
+```
+
+#### Testing Best Practices
+
+1. **Test Isolation**: Each test should be independent
+2. **Mock External Dependencies**: Mock API calls, database connections
+3. **Test Edge Cases**: Invalid inputs, error conditions, boundary values
+4. **Descriptive Test Names**: Use clear, descriptive test names
+5. **Arrange-Act-Assert Pattern**: Structure tests clearly
+6. **Test Coverage**: Aim for >80% code coverage
+
+#### Common Testing Patterns
+
+**API Controller Testing:**
+```typescript
+it('should validate required parameters', async () => {
+  const req = { params: {} } as Request;
+  const res = {
+    status: jest.fn().mockReturnThis(),
+    json: jest.fn()
+  } as any;
+
+  await MyController.myMethod(req, res);
+
+  expect(res.status).toHaveBeenCalledWith(400);
+  expect(res.json).toHaveBeenCalledWith({
+    message: 'Missing required parameters'
+  });
+});
+```
+
+**Service Layer Testing:**
+```typescript
+it('should handle API errors gracefully', async () => {
+  jest.spyOn(axios, 'get').mockRejectedValue(new Error('API Error'));
+
+  await expect(myService.getData()).rejects.toThrow('API Error');
+});
+```
+
+**Database Entity Testing:**
+```typescript
+it('should validate entity fields', async () => {
+  const entity = new MyEntity();
+  entity.invalidField = 'invalid';
+
+  const errors = await validate(entity);
+  expect(errors.length).toBeGreaterThan(0);
+});
+```
 
 ## Unit Testing
 
-Unit tests are written using Jasmine and Karma.
+Unit tests are written using Jasmine and Karma for the frontend.
 
 ### Running Unit Tests
 

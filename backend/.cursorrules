@@ -1,0 +1,227 @@
+# Backend Naming Conventions and Code Standards
+
+## File Naming Conventions
+
+### 1. Entity Files
+- **Pattern**: `{EntityName}Entity.ts`
+- **Location**: `src/entity/`
+- **Examples**:
+  - `BillEntity.ts` - Database entity for bills
+  - `MemberEntity.ts` - Database entity for members
+  - `CommitteeEntity.ts` - Database entity for committees
+
+### 2. Model/DTO Files
+- **Pattern**: `{EntityName}.model.ts`
+- **Location**: `shared/`
+- **Examples**:
+  - `Bill.model.ts` - DTOs and interfaces for bills
+  - `Member.model.ts` - DTOs and interfaces for members
+  - `Committee.model.ts` - DTOs and interfaces for committees
+
+### 3. Controller Files
+- **Pattern**: `{EntityName}.controller.ts`
+- **Location**: `src/controller/`
+- **Examples**:
+  - `bill.controller.ts` - Bill-related endpoints
+  - `member.controller.ts` - Member-related endpoints
+  - `committee.controller.ts` - Committee-related endpoints
+
+### 4. API Service Files
+- **Pattern**: `{EntityName}.api.ts`
+- **Location**: `src/api/`
+- **Examples**:
+  - `bill.api.ts` - Bill API integration functions
+  - `member.api.ts` - Member API integration functions
+  - `committee.api.ts` - Committee API integration functions
+
+### 5. Test Files
+- **Pattern**: `{filename}.test.ts` or `{filename}.spec.ts`
+- **Location**: `src/**/__tests__/` (for backend) or alongside component (for frontend)
+- **Examples**:
+  - `bill.controller.test.ts`
+  - `committee.api.test.ts`
+  - `app.component.spec.ts`
+
+## Code Structure Standards
+
+### 1. Entity Classes
+```typescript
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { IsNotEmpty, IsString } from 'class-validator';
+
+@Entity()
+export class EntityNameEntity {
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @Column()
+    @IsNotEmpty()
+    @IsString()
+    propertyName: string;
+}
+```
+
+### 2. Model/DTO Interfaces
+```typescript
+export enum EntityPropEnum {
+    id = "id",
+    propertyName = "propertyName",
+}
+
+export interface EntityDto {
+    [EntityPropEnum.id]: number;
+    [EntityPropEnum.propertyName]: string;
+}
+```
+
+### 3. Controller Namespaces
+```typescript
+export namespace EntityNameController {
+    export const methodName = async (req: Request, res: Response) => {
+        // Implementation
+    }
+}
+```
+
+### 4. API Functions
+```typescript
+export const functionName = async (
+    repository: Repository<Entity>,
+    params: ParamsType
+) => {
+    // Implementation
+}
+```
+
+## Import/Export Standards
+
+### 1. Import Order
+1. Angular/Core imports (`@angular/core`, `@angular/common`)
+2. Third-party libraries (rxjs, lodash, etc.)
+3. Shared models (`@shared/`)
+4. Local imports (relative paths)
+5. Type-only imports (using `import type`)
+
+### 2. Export Patterns
+- Default export for main classes/components
+- Named exports for utilities and constants
+- Namespace exports for controllers
+
+## Testing Standards
+
+### 1. Test File Structure
+```typescript
+describe('ComponentName', () => {
+    describe('methodName', () => {
+        it('should handle valid input', () => {
+            // Test implementation
+        });
+
+        it('should handle invalid input', () => {
+            // Test implementation
+        });
+    });
+});
+```
+
+### 2. Mock Data Location
+- Mock data should be in `mock/` directory
+- Pattern: `{entityName}.mock.ts`
+
+## Database Standards
+
+### 1. Migration Files
+- Pattern: `{timestamp}-{description}.ts`
+- Location: `src/migration/`
+
+### 2. Seed Files
+- Pattern: `{entityName}.seed.ts`
+- Location: `src/seed/`
+
+## Configuration Standards
+
+### 1. Environment Variables
+- Prefix: Application name (e.g., `GOV_DATA_BUDDY_`)
+- Naming: `UPPER_SNAKE_CASE`
+- Required vars in `.env.example`
+
+### 2. Config Files
+- Location: `assets/config.json`
+- Interface: `src/service/app-config/app-config.model.ts`
+
+## Error Handling Standards
+
+### 1. HTTP Status Codes
+- 200: Success
+- 400: Bad Request (validation errors)
+- 401: Unauthorized
+- 404: Not Found
+- 429: Rate Limited
+- 500: Internal Server Error
+
+### 2. Error Response Format
+```typescript
+{
+    "message": "Human readable error message",
+    "code": "ERROR_CODE", // Optional
+    "details": {} // Optional additional data
+}
+```
+
+## Performance Standards
+
+### 1. Caching Strategy
+- Database caching for API responses
+- Redis for session data (future)
+- Cache invalidation policies
+
+### 2. Query Optimization
+- Use `findOne` instead of `find` when expecting single result
+- Implement pagination for large datasets
+- Use database indexes for frequently queried fields
+
+## Security Standards
+
+### 1. Input Validation
+- Validate all user inputs
+- Sanitize data before processing
+- Use class-validator for entity validation
+
+### 2. API Security
+- Rate limiting implementation
+- Input sanitization
+- Secure headers
+
+## Documentation Standards
+
+### 1. Code Comments
+- JSDoc for public methods
+- Inline comments for complex logic
+- TODO comments with issue references
+
+### 2. README Updates
+- Update main README for new features
+- Document API endpoints
+- Include setup instructions
+
+## Git Standards
+
+### 1. Commit Messages
+- Pattern: `type(scope): description`
+- Types: feat, fix, docs, style, refactor, test, chore
+- Scope: component/feature name
+
+### 2. Branch Naming
+- Pattern: `feature/description`, `bugfix/description`, `hotfix/description`
+- Use kebab-case for descriptions
+
+## Review Checklist
+
+- [ ] File naming follows conventions
+- [ ] Code structure matches patterns
+- [ ] Tests are written and passing
+- [ ] Documentation is updated
+- [ ] No console.log statements in production code
+- [ ] Input validation implemented
+- [ ] Error handling implemented
+- [ ] Performance considerations addressed

@@ -62,45 +62,63 @@ export const getBills = async (req: Request, res: Response, billRepository: Repo
 };
 
 export const fetchBillDetails = async (billRepository: Repository<BillDetailsEntity>, billParams: { congress: string, billType: string, billNumber: string }) => {
-    const parsedBillNumber = parseInt(billParams.billNumber, 10) ?? 0
     const { API_DATA_GOV } = process.env;
     const { congress, billType, billNumber } = billParams;
-    // TODO Decide if we want to do anything with the bill key - since a bill number might be sufficient to save - TODO Research these bill numbers and if they're reused between congress numbers 
+
+    if (!API_DATA_GOV) {
+        throw new Error('API key not configured');
+    }
+
     const billKey = `${congress}-${billType}-${billNumber}`;
-    console.log(`Billkey ${billKey}`)
-    const existingData = await billRepository.findOneBy({ id: parsedBillNumber });
+    console.log(`Processing bill: ${billKey}`);
+
+    // Create a composite key for caching based on congress, type, and number
+    const compositeKey = `${congress}-${billType}-${billNumber}`;
+
+    // Look for existing data using a query that matches the composite key
+    const existingData = await billRepository.findOne({
+        where: {
+            congress: parseInt(congress),
+            type: billType,
+            number: billNumber
+        }
+    });
 
     if (existingData) {
-        console.log(`Returning bill details from database: ${billKey}`);
+        console.log(`Returning cached bill details for: ${billKey}`);
         return existingData;
-    } else {
-        console.log(`Fetching bill details from API...`);
     }
+
+    console.log(`Fetching bill details from API for: ${billKey}`);
 
     const API_URL = `https://api.congress.gov/v3/bill/${congress}/${billType}/${billNumber}`;
     const response = await axios.get(`${API_URL}?format=json&api_key=${API_DATA_GOV}`, {
         headers: { accept: 'application/json' },
+        timeout: 10000
     });
 
     const billDetails = response.data.bill;
-    console.log(`Response from api`)
-    console.log(response.data)
+    console.log(`Received bill details from API for: ${billKey}`);
+
     const decoratedBillDetails = plainToClass(BillDetailsEntity, {
         ...billDetails,
-        id: billNumber,
+        // Don't set id manually - let TypeORM auto-generate it
     });
-    console.log(`Decorated bill details`)
-    console.log(decoratedBillDetails)
+
+    console.log(`Validating and saving bill details for: ${billKey}`);
 
     const errors = await validate(decoratedBillDetails);
     if (errors.length > 0) {
-        throw new Error(`Validation failed for bill ${billNumber}: ${JSON.stringify(errors)}`);
+        console.error(`Validation errors for bill ${billKey}:`, errors);
+        throw new Error(`Validation failed for bill ${billKey}: ${JSON.stringify(errors)}`);
     }
+
     try {
-        await billRepository.save(decoratedBillDetails);
-    } catch (e) {
-        console.log(`Error in saving bill id ${billNumber}`)
-        console.warn(e)
+        const savedBill = await billRepository.save(decoratedBillDetails);
+        console.log(`Successfully saved bill details for: ${billKey}`);
+        return savedBill;
+    } catch (error) {
+        console.error(`Error saving bill ${billKey}:`, error);
+        throw new Error(`Failed to save bill details for ${billKey}`);
     }
-    return decoratedBillDetails;
 };
