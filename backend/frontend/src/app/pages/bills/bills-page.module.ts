@@ -1,10 +1,10 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
 import { MaterialModule } from '../../shared/material/material.module';
 
 import { BillsPageComponent } from './bills-page.component';
 import { BillsComponent } from '../../components/bills/bills.component';
+import { BillsPageRoutingModule } from './bills-page-routing.module';
 // import { SharedComponentsModule } from '../../components/shared/shared-components.module';
 
 @NgModule({
@@ -14,7 +14,7 @@ import { BillsComponent } from '../../components/bills/bills.component';
   ],
   imports: [
     CommonModule,
-    RouterModule,
+    BillsPageRoutingModule,
     MaterialModule
     // SharedComponentsModule
   ]
