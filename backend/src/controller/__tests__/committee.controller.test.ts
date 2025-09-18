@@ -11,12 +11,12 @@ jest.mock('../../datasource/sqlite-datasource', () => ({
     }
 }));
 
-// Mock the API functions
+// Mock the API functions to prevent database operations
 jest.mock('../../api/committee.api', () => ({
-    getCommittees: jest.fn(),
-    fetchCommitteeDetails: jest.fn(),
-    getCommitteeBills: jest.fn(),
-    getCommitteeReports: jest.fn()
+    getCommittees: jest.fn().mockResolvedValue({ committees: [], pagination: {} }),
+    fetchCommitteeDetails: jest.fn().mockResolvedValue({ id: 1, name: 'Test Committee' }),
+    getCommitteeBills: jest.fn().mockImplementation((req: any, res: any) => res.json({ bills: [] })),
+    getCommitteeReports: jest.fn().mockImplementation((req: any, res: any) => res.json({ reports: [] }))
 }));
 
 describe('CommitteesController', () => {

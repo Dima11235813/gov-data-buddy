@@ -12,6 +12,7 @@ import { RequestEntity } from "../entity/RequestEntity";
 import { SponsorEntity } from "../entity/SponsorEntity";
 import { CBOCostEstimateEntity } from "../entity/CboCostEstimateEntity";
 import { CommitteeReport } from "../entity/CommitteeReportEntity";
+import { CommitteeEntity } from "../entity/CommitteeEntity";
 
 export const AppDataSource = new DataSource({
   type: 'sqlite',
@@ -34,6 +35,8 @@ export const AppDataSource = new DataSource({
     // MEMBER
     MemberEntity,
     ServedEntity,
-    DepictionEntity
+    DepictionEntity,
+    // COMMITTEE
+    CommitteeEntity
   ],
 });

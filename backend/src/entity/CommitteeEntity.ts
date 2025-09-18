@@ -104,7 +104,7 @@ export class CommitteeEntity {
     @IsString()
     name: string;
 
-    @Column({ nullable: true })
+    @Column({ type: 'varchar', nullable: true })
     @IsOptional()
     @IsString()
     parent?: string | null;

@@ -1,31 +1,39 @@
 import { Request, Response } from 'express';
-import { BillsController } from '../bill.controller';
-import { AppDataSource } from '../../datasource/sqlite-datasource';
-import { Repository } from 'typeorm';
-import { BillEntity } from '../../entity/BillEntity';
-import { BillDetailsEntity } from '../../entity/BillDetailsEntity';
 
-// Mock the entire AppDataSource
+// Mock the API functions before importing the controller
+const mockFetchBillDetails = jest.fn();
+const mockGetBills = jest.fn();
+
+jest.mock('../../api/bill.api', () => ({
+    fetchBillDetails: mockFetchBillDetails,
+    getBills: mockGetBills
+}));
+
+// Mock the datasource
 jest.mock('../../datasource/sqlite-datasource', () => ({
     AppDataSource: {
         manager: {
-            getRepository: jest.fn()
+            getRepository: jest.fn(() => ({
+                findBy: jest.fn().mockResolvedValue([]),
+                findOneBy: jest.fn().mockResolvedValue(null),
+                save: jest.fn().mockResolvedValue({}),
+                findOne: jest.fn().mockResolvedValue(null),
+                createQueryBuilder: jest.fn(() => ({
+                    andWhere: jest.fn().mockReturnThis(),
+                    getCount: jest.fn().mockResolvedValue(0)
+                }))
+            }))
         }
     }
 }));
 
-// Mock the API functions
-jest.mock('../../api/bill.api', () => ({
-    fetchBillDetails: jest.fn(),
-    getBills: jest.fn()
-}));
+import { BillsController } from '../bill.controller';
 
 describe('BillsController', () => {
     let mockRequest: Partial<Request>;
     let mockResponse: Partial<Response>;
     let mockJson: jest.Mock;
     let mockStatus: jest.Mock;
-    let mockRepository: any;
 
     beforeEach(() => {
         mockJson = jest.fn();
@@ -34,23 +42,9 @@ describe('BillsController', () => {
             json: mockJson,
             status: mockStatus
         };
-
-        // Mock repository
-        mockRepository = {
-            findBy: jest.fn(),
-            save: jest.fn(),
-            findOneBy: jest.fn(),
-            findOne: jest.fn(),
-            createQueryBuilder: jest.fn(() => ({
-                andWhere: jest.fn().mockReturnThis(),
-                getCount: jest.fn().mockResolvedValue(100)
-            }))
-        };
-
-        // Setup AppDataSource mock to return our mock repository
-        (AppDataSource.manager.getRepository as jest.Mock)
-            .mockReturnValueOnce(mockRepository) // For BillEntity
-            .mockReturnValueOnce(mockRepository); // For BillDetailsEntity
+        // Clear mocks
+        mockFetchBillDetails.mockClear();
+        mockGetBills.mockClear();
     });
 
     afterEach(() => {
@@ -69,6 +63,7 @@ describe('BillsController', () => {
             expect(mockJson).toHaveBeenCalledWith({
                 message: 'Missing required parameters: congress, billType, billNumber'
             });
+            expect(mockFetchBillDetails).not.toHaveBeenCalled();
         });
 
         it('should return 400 when billType parameter is missing', async () => {
@@ -82,6 +77,7 @@ describe('BillsController', () => {
             expect(mockJson).toHaveBeenCalledWith({
                 message: 'Missing required parameters: congress, billType, billNumber'
             });
+            expect(mockFetchBillDetails).not.toHaveBeenCalled();
         });
 
         it('should return 400 when billNumber parameter is missing', async () => {
@@ -95,6 +91,7 @@ describe('BillsController', () => {
             expect(mockJson).toHaveBeenCalledWith({
                 message: 'Missing required parameters: congress, billType, billNumber'
             });
+            expect(mockFetchBillDetails).not.toHaveBeenCalled();
         });
 
         it('should return 400 when congress is not a valid number', async () => {
@@ -108,6 +105,7 @@ describe('BillsController', () => {
             expect(mockJson).toHaveBeenCalledWith({
                 message: 'Congress must be a valid number'
             });
+            expect(mockFetchBillDetails).not.toHaveBeenCalled();
         });
     });
 

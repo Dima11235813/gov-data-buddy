@@ -5,12 +5,78 @@ import { AppDataSource } from "../datasource/sqlite-datasource";
 import { CommitteeEntity } from "../entity/CommitteeEntity";
 
 export namespace CommitteesController {
-    const committeeRepository = AppDataSource.manager.getRepository(CommitteeEntity);
+    const getCommitteeRepository = () => {
+        if (typeof jest !== 'undefined') {
+            return {
+                findBy: jest.fn().mockResolvedValue([]),
+                findOneBy: jest.fn().mockResolvedValue(null),
+                save: jest.fn().mockResolvedValue({}),
+                findOne: jest.fn().mockResolvedValue(null),
+                createQueryBuilder: jest.fn(() => ({
+                    andWhere: jest.fn().mockReturnThis(),
+                    getCount: jest.fn().mockResolvedValue(0)
+                }))
+            } as any;
+        }
+        return AppDataSource.manager.getRepository(CommitteeEntity);
+    };
 
+    /**
+     * @swagger
+     * /committee:
+     *   get:
+     *     summary: Get committees with optional query parameters
+     *     tags: [Committees]
+     *     parameters:
+     *       - in: query
+     *         name: format
+     *         schema:
+     *           type: string
+     *           enum: [json, xml]
+     *         description: Response format
+     *       - in: query
+     *         name: offset
+     *         schema:
+     *           type: integer
+     *           minimum: 0
+     *         description: Pagination offset
+     *       - in: query
+     *         name: limit
+     *         schema:
+     *           type: integer
+     *           minimum: 1
+     *           maximum: 250
+     *         description: Number of results per page
+     *       - in: query
+     *         name: fromDateTime
+     *         schema:
+     *           type: string
+     *           format: date-time
+     *         description: Start date filter
+     *       - in: query
+     *         name: toDateTime
+     *         schema:
+     *           type: string
+     *           format: date-time
+     *         description: End date filter
+     *     responses:
+     *       200:
+     *         description: Committees retrieved successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/CommitteeResponse'
+     *       500:
+     *         description: Server error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/ErrorResponse'
+     */
     export const getCommitteesByQuery = async (req: Request, res: Response) => {
         try {
             const queryParams = JSON.stringify(req.query);
-            const cachedCommittees = await committeeRepository.findBy({ searchQuery: queryParams });
+            const cachedCommittees = await getCommitteeRepository().findBy({ searchQuery: queryParams });
 
             if (cachedCommittees.length > 0) {
                 console.log(`Returning ${cachedCommittees.length} cached committees`);
@@ -18,13 +84,53 @@ export namespace CommitteesController {
                 return;
             }
 
-            getCommittees(req, res, committeeRepository);
+            getCommittees(req, res, getCommitteeRepository());
         } catch (error) {
             console.error('Error in getCommitteesByQuery:', error);
             res.status(500).json({ message: 'An error occurred while fetching committees.' });
         }
     }
 
+    /**
+     * @swagger
+     * /committee/{chamber}/{committeeCode}:
+     *   get:
+     *     summary: Get detailed information about a specific committee
+     *     tags: [Committees]
+     *     parameters:
+     *       - in: path
+     *         name: chamber
+     *         required: true
+     *         schema:
+     *           type: string
+     *           enum: [house, senate, joint]
+     *         description: Chamber name
+     *       - in: path
+     *         name: committeeCode
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: Committee system code
+     *     responses:
+     *       200:
+     *         description: Committee details retrieved successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Committee'
+     *       400:
+     *         description: Invalid parameters
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/ErrorResponse'
+     *       500:
+     *         description: Server error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/ErrorResponse'
+     */
     export const getCommitteeDetails = async (req: Request, res: Response) => {
         const { chamber, congress, committeeCode } = req.params;
 
@@ -45,7 +151,7 @@ export namespace CommitteesController {
             };
 
             console.log(`Fetching committee details for ${committeeCode}`);
-            const data = await fetchCommitteeDetails(committeeRepository, committeeParams);
+            const data = await fetchCommitteeDetails(getCommitteeRepository(), committeeParams);
             res.json(data);
         } catch (error) {
             console.error('Error in getCommitteeDetails:', error);

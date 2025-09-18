@@ -5,6 +5,8 @@ import "reflect-metadata";
 // import initDb from './database/db';
 
 import cors from 'cors';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './swagger.config';
 import { BillsController } from './controller/bill.controller';
 import { MembersController } from './controller/member.controller';
 import { CommitteesController } from './controller/committee.controller';
@@ -19,6 +21,7 @@ dotenv.config();
 
 const app = express()
 app.use(cors());
+app.use(express.json()); // Add JSON parsing middleware
 const port = process.env.PORT || 3000;
 
 const router = Router();
@@ -43,9 +46,14 @@ AppDataSource.initialize()
         router.get('/committee/:chamber/:committeeCode/reports', CommitteesController.getCommitteeReports);
         router.get('/committee/:chamber/:committeeCode/house-communication', CommitteesController.getCommitteeCommunications);
         router.get('/committee/senate/:committeeCode/nominations', CommitteesController.getCommitteeNominations);
+
+        // Swagger UI
+        app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
         app.use('/', router)
         app.listen(port, () => {
             console.log(`Server is running on port ${port}`);
+            console.log(`Swagger UI available at: http://localhost:${port}/api-docs`);
         });
     })
     .catch((error) => console.log('TypeORM connection error: ', error));
