@@ -1,6 +1,5 @@
-import axios from 'axios';
 import { Request, Response } from 'express';
-import { getMembers } from "../api/member.api";
+import { getMembers, fetchMemberDetailsFromAPI } from "../api/member.api";
 import { AppDataSource } from "../datasource/sqlite-datasource";
 import { Member } from "../entity/MemberEntity";
 
@@ -33,22 +32,45 @@ export namespace MembersController {
 
     export const getMemberDetails = async (req: Request, res: Response) => {
         const { bioguideId } = req.params;
-        const { format = 'json' } = req.query;
 
         try {
-            // TODO move endpoint into dotenv
-            const API_URL = `https://api.congress.gov/v3/member/${bioguideId}`;
-            const API_DATA_GOV = process.env.API_DATA_GOV;
+            // Try to get from database first (cache)
+            let cachedMember: Member | null = null;
+            try {
+                cachedMember = await memberRepository.findOneBy({ bioguideId });
+            } catch (dbError) {
+                console.warn('Database query failed, falling back to API:', dbError);
+            }
 
-            const response = await axios.get(`${API_URL}?format=${format}&api_key=${API_DATA_GOV}`, {
-                headers: { accept: 'application/json' },
-            });
+            if (cachedMember) {
+                console.log(`Returning cached member: ${bioguideId}`);
+                res.json({ member: cachedMember });
+                return;
+            }
 
-            const data = response.data;
+            // If not in cache, fetch from API
+            const data = await fetchMemberDetailsFromAPI(bioguideId, memberRepository);
             res.json(data);
+
         } catch (error) {
-            console.error(error);
-            res.status(500).json({ message: 'An error occurred while fetching data from the API.' });
+            console.error(`Error fetching member ${bioguideId}:`, error);
+
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            let statusCode = 500;
+            let message = 'An error occurred while fetching member data.';
+
+            if (errorMessage.includes('not found')) {
+                statusCode = 404;
+                message = errorMessage;
+            } else if (errorMessage.includes('rate limit')) {
+                statusCode = 429;
+                message = errorMessage;
+            }
+
+            res.status(statusCode).json({
+                message,
+                error: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+            });
         }
     }
 }

@@ -1,0 +1,1 @@
+add handling for long bill detail titles add conditional rendering section delimit by ( dynamic content ) and truncate the title 

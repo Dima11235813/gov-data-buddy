@@ -229,7 +229,7 @@ describe('ComponentName', () => {
 ## Performance Standards
 
 ### 1. Caching Strategy
-- Database caching for API responses
+- Database-first policy for all external API responses
 - Redis for session data (future)
 - Cache invalidation policies
 
@@ -237,6 +237,54 @@ describe('ComponentName', () => {
 - Use `findOne` instead of `find` when expecting single result
 - Implement pagination for large datasets
 - Use database indexes for frequently queried fields
+
+### 3. API Caching & Persistence Policy (MANDATORY)
+
+All backend API integrations MUST follow a database-first retrieval flow. Only hit external providers (e.g., Congress.gov) when no cached result exists for the request. After a successful external call, normalize the request, persist the response, and return the saved result.
+
+Required flow:
+1. Normalize request → build a deterministic `searchQueryKey`
+   - Include endpoint name and path parameters
+   - Include only defined, non-empty query params
+   - Sort keys lexicographically
+   - Lowercase keys; preserve values as-is
+   - Example key format: `${endpoint}|${JSON.stringify(sortedParams)}`
+2. DB check → attempt to return cached rows first
+3. External call → only if DB returned no rows
+4. Persist → save rows with `searchQuery = searchQueryKey`
+5. Respond → return DB objects (not raw external payload)
+
+Implementation notes:
+- Always exclude `undefined`/empty params from keys to avoid cache fragmentation
+- Reuse TypeORM repositories and entity validation before save
+- Prefer `findBy({ searchQuery: searchQueryKey })` for bulk lists
+- For detail endpoints, prefer `findOneBy({ bioguideId })` first, then API fallback
+- Consider adding an index on `searchQuery` for high-traffic endpoints
+
+Example (pseudocode):
+```
+const params = normalizeParams(req.query);
+const key = buildSearchKey('member.list', params);
+
+const cached = await repo.findBy({ searchQuery: key });
+if (cached.length) return res.json({ members: cached });
+
+const apiData = await fetchFromProvider(params);
+const entities = transform(apiData);
+for (const e of entities) {
+  e.searchQuery = key;
+  await repo.save(e);
+}
+return res.json({ members: entities });
+```
+
+Normalization helper guidelines:
+- `normalizeParams` removes null/undefined/empty-string values
+- Sort parameter keys (stable order)
+- Use `JSON.stringify` on the sorted object
+
+TTL/Refresh (optional):
+- If staleness matters, add `updatedAt` checks and a refresh interval; otherwise default to permanent cache until explicit invalidation.
 
 ## Security Standards
 

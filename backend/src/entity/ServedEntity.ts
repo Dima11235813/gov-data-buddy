@@ -4,16 +4,26 @@ import {
 } from 'typeorm';
 import { IsNotEmpty } from 'class-validator';
 
-export class SenateTerm {
-    @Column({ nullable: true })
-    end: number
+export class HouseTerm {
+    @Column('integer', { nullable: true })
+    end: number;
 
-    @Column()
-    @IsNotEmpty()
+    @Column('integer', { nullable: true })
+    start: number;
+}
+
+export class SenateTerm {
+    @Column('integer', { nullable: true })
+    end: number;
+
+    @Column('integer', { nullable: true })
     start: number;
 }
 
 export class Served {
+    @Column(type => HouseTerm)
+    House?: HouseTerm[];
+
     @Column(type => SenateTerm)
-    Senate: SenateTerm[];
+    Senate?: SenateTerm[];
 }

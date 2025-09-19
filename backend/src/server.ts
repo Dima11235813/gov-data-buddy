@@ -36,6 +36,7 @@ AppDataSource.initialize()
         router.get('/bill/:congress/:billType/:billNumber/summaries', BillsController.getBillSummary);
         //MEMBER
         router.get('/member', MembersController.getMembersByQuery);
+        router.get('/member/:bioguideId', MembersController.getMemberDetails);
         //COMMITTEE
         router.get('/committee', CommitteesController.getCommitteesByQuery);
         router.get('/committee/:congress/:chamber', CommitteesController.getCommitteesByQuery);

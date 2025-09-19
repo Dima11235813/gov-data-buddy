@@ -18,6 +18,7 @@ export class MockAppConfigService {
 
       "SENTRY_INSTRUMENTATION_KEY": "",
       "API_URL": "https://localhost:3000",
+      "API_ROOT": "https://localhost:3000",
 
       "SESSION_TIMEOUT_TIME": "300000"
     }

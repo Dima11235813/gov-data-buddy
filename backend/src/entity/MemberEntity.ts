@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { Depiction } from './DepictionEntity';
 import { Served } from './ServedEntity';
+import { Term } from './TermEntity';
 import { IsNotEmpty, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -37,8 +38,7 @@ export class Member {
     @IsNotEmpty()
     name: string;
 
-    @Column()
-    @IsNotEmpty()
+    @Column({ nullable: true })
     party: string;
 
     @Column(type => Served)
@@ -55,4 +55,7 @@ export class Member {
 
     @Column({ type: 'text' })
     url: string;
+
+    // Optional normalized terms table for reliable validation and queries
+    terms?: Term[];
 }
