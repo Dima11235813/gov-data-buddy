@@ -41,7 +41,7 @@
     display: flex;
     gap: 1rem;
 
-    a {
+    a, app-link .app-link {
       color: #dbe7ff;
       text-decoration: none;
       padding: 0.4rem 0.6rem;

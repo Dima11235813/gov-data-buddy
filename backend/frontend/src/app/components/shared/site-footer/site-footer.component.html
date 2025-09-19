@@ -9,9 +9,9 @@
       <div class="column">
         <h4>Data Sources</h4>
         <ul>
-          <li><a routerLink="/bills">Bills</a></li>
-          <li><a routerLink="/committee">Committees</a></li>
-          <li><a href="https://api.congress.gov/" target="_blank" rel="noopener">Congress.gov API</a></li>
+          <li><app-link materialStyle="button" [routerLink]="['/bills']">Bills</app-link></li>
+          <li><app-link materialStyle="button" [routerLink]="['/committee']">Committees</app-link></li>
+          <li><a mat-button href="https://api.congress.gov/" target="_blank" rel="noopener">Congress.gov API</a></li>
         </ul>
       </div>
       <div class="column">

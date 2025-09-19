@@ -68,13 +68,14 @@
           <div class="sponsors-list">
             <div class="sponsor" *ngFor="let sponsor of billDetails.sponsors">
               <mat-icon>person</mat-icon>
-              <a
+              <app-link
+                materialStyle="button"
                 [routerLink]="['/members', sponsor.bioguideId]"
-                [attr.aria-label]="'View profile for ' + (sponsor.fullName || (sponsor.firstName + ' ' + sponsor.lastName))"
-                class="sponsor-link"
+                [ariaLabel]="'View profile for ' + (sponsor.fullName || (sponsor.firstName + ' ' + sponsor.lastName))"
+                linkClass="sponsor-link"
               >
                 {{ sponsor.fullName || sponsor.firstName + ' ' + sponsor.lastName }}
-              </a>
+              </app-link>
               <span class="sponsor-party" *ngIf="sponsor.party">({{ sponsor.party }})</span>
             </div>
           </div>

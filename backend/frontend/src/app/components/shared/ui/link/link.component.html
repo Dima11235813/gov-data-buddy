@@ -1,0 +1,145 @@
+<ng-template #projectedContent>
+  <ng-content></ng-content>
+</ng-template>
+
+<ng-container *ngIf="routerLink; else external">
+  <!-- Material-styled router link -->
+  <ng-container *ngIf="materialStyle; else plainRouter">
+    <ng-container [ngSwitch]="materialStyle">
+      <a *ngSwitchCase="'raised'"
+         class="app-link"
+         mat-raised-button
+         [color]="color"
+         [ngClass]="linkClass"
+         [routerLink]="routerLink"
+         [queryParams]="queryParams"
+         [queryParamsHandling]="queryParamsHandling"
+         [fragment]="computedFragment ?? undefined"
+         [routerLinkActive]="routerLinkActive || ''"
+         [attr.aria-label]="ariaLabel || null"
+         [attr.tabindex]="0"
+         [attr.role]="null">
+        <ng-container [ngTemplateOutlet]="projectedContent"></ng-container>
+      </a>
+      <a *ngSwitchCase="'stroked'"
+         class="app-link"
+         mat-stroked-button
+         [color]="color"
+         [ngClass]="linkClass"
+         [routerLink]="routerLink"
+         [queryParams]="queryParams"
+         [queryParamsHandling]="queryParamsHandling"
+         [fragment]="computedFragment ?? undefined"
+         [routerLinkActive]="routerLinkActive || ''"
+         [attr.aria-label]="ariaLabel || null"
+         [attr.tabindex]="0"
+         [attr.role]="null">
+        <ng-container [ngTemplateOutlet]="projectedContent"></ng-container>
+      </a>
+      <a *ngSwitchCase="'flat'"
+         class="app-link"
+         mat-flat-button
+         [color]="color"
+         [ngClass]="linkClass"
+         [routerLink]="routerLink"
+         [queryParams]="queryParams"
+         [queryParamsHandling]="queryParamsHandling"
+         [fragment]="computedFragment ?? undefined"
+         [routerLinkActive]="routerLinkActive || ''"
+         [attr.aria-label]="ariaLabel || null"
+         [attr.tabindex]="0"
+         [attr.role]="null">
+        <ng-container [ngTemplateOutlet]="projectedContent"></ng-container>
+      </a>
+      <a *ngSwitchCase="'icon'"
+         class="app-link"
+         mat-icon-button
+         [color]="color"
+         [ngClass]="linkClass"
+         [routerLink]="routerLink"
+         [queryParams]="queryParams"
+         [queryParamsHandling]="queryParamsHandling"
+         [fragment]="computedFragment ?? undefined"
+         [routerLinkActive]="routerLinkActive || ''"
+         [attr.aria-label]="ariaLabel || null"
+         [attr.tabindex]="0"
+         [attr.role]="null">
+        <ng-container [ngTemplateOutlet]="projectedContent"></ng-container>
+      </a>
+      <a *ngSwitchDefault
+         class="app-link"
+         mat-button
+         [color]="color"
+         [ngClass]="linkClass"
+         [routerLink]="routerLink"
+         [queryParams]="queryParams"
+         [queryParamsHandling]="queryParamsHandling"
+         [fragment]="computedFragment ?? undefined"
+         [routerLinkActive]="routerLinkActive || ''"
+         [attr.aria-label]="ariaLabel || null"
+         [attr.tabindex]="0"
+         [attr.role]="null">
+        <ng-container [ngTemplateOutlet]="projectedContent"></ng-container>
+      </a>
+    </ng-container>
+  </ng-container>
+
+  <!-- Plain router link (no material styles) -->
+  <ng-template #plainRouter>
+    <a
+      class="app-link"
+      [ngClass]="linkClass"
+      [routerLink]="routerLink"
+      [queryParams]="queryParams"
+      [queryParamsHandling]="queryParamsHandling"
+      [fragment]="computedFragment ?? undefined"
+      [routerLinkActive]="routerLinkActive || ''"
+      [attr.aria-label]="ariaLabel || null"
+      [attr.tabindex]="0"
+      [attr.role]="null"
+    >
+      <ng-container [ngTemplateOutlet]="projectedContent"></ng-container>
+    </a>
+  </ng-template>
+</ng-container>
+
+<ng-template #external>
+  <!-- Material-styled external link -->
+  <ng-container *ngIf="materialStyle; else plainExternal">
+    <ng-container [ngSwitch]="materialStyle">
+      <a *ngSwitchCase="'raised'" class="app-link" mat-raised-button [color]="color" [ngClass]="linkClass" [attr.href]="href || null" [attr.target]="target || null" [attr.rel]="relAttr" [attr.aria-label]="ariaLabel || null" [attr.tabindex]="0" [attr.role]="null">
+        <ng-container [ngTemplateOutlet]="projectedContent"></ng-container>
+      </a>
+      <a *ngSwitchCase="'stroked'" class="app-link" mat-stroked-button [color]="color" [ngClass]="linkClass" [attr.href]="href || null" [attr.target]="target || null" [attr.rel]="relAttr" [attr.aria-label]="ariaLabel || null" [attr.tabindex]="0" [attr.role]="null">
+        <ng-container [ngTemplateOutlet]="projectedContent"></ng-container>
+      </a>
+      <a *ngSwitchCase="'flat'" class="app-link" mat-flat-button [color]="color" [ngClass]="linkClass" [attr.href]="href || null" [attr.target]="target || null" [attr.rel]="relAttr" [attr.aria-label]="ariaLabel || null" [attr.tabindex]="0" [attr.role]="null">
+        <ng-container [ngTemplateOutlet]="projectedContent"></ng-container>
+      </a>
+      <a *ngSwitchCase="'icon'" class="app-link" mat-icon-button [color]="color" [ngClass]="linkClass" [attr.href]="href || null" [attr.target]="target || null" [attr.rel]="relAttr" [attr.aria-label]="ariaLabel || null" [attr.tabindex]="0" [attr.role]="null">
+        <ng-container [ngTemplateOutlet]="projectedContent"></ng-container>
+      </a>
+      <a *ngSwitchDefault class="app-link" mat-button [color]="color" [ngClass]="linkClass" [attr.href]="href || null" [attr.target]="target || null" [attr.rel]="relAttr" [attr.aria-label]="ariaLabel || null" [attr.tabindex]="0" [attr.role]="null">
+        <ng-container [ngTemplateOutlet]="projectedContent"></ng-container>
+      </a>
+    </ng-container>
+  </ng-container>
+
+  <!-- Plain external link (no material styles) -->
+  <ng-template #plainExternal>
+    <a
+      class="app-link"
+      [ngClass]="linkClass"
+      [attr.href]="href || null"
+      [attr.target]="target || null"
+      [attr.rel]="relAttr"
+      [attr.aria-label]="ariaLabel || null"
+      [attr.tabindex]="0"
+      [attr.role]="null"
+    >
+      <ng-container [ngTemplateOutlet]="projectedContent"></ng-container>
+    </a>
+  </ng-template>
+</ng-template>
+
+

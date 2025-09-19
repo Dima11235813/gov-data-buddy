@@ -186,7 +186,7 @@ import { MemberDto } from '../../../../../../../backend/shared/Member.model';
       </ng-template>
 
       <mat-paginator
-        *ngIf="totalMembers > pageSize"
+        *ngIf="members.length > 0"
         [length]="totalMembers"
         [pageSize]="pageSize"
         [pageSizeOptions]="[12, 24, 48]"
@@ -365,6 +365,7 @@ export class MemberDirectoryComponent implements OnInit {
   private searchTimeout: any;
   pageIndex = 0;
   displayedColumns: string[] = ['photo', 'name', 'party', 'state', 'district'];
+  private knownTotal = false;
 
   constructor(
     private fb: FormBuilder,
@@ -483,7 +484,20 @@ export class MemberDirectoryComponent implements OnInit {
     this.membersService.getMembers(searchParams).subscribe({
       next: (response: MemberSearchResponse) => {
         this.members = response.members || [];
-        this.totalMembers = response.pagination?.total || 0;
+        const receivedTotal = (response as any)?.pagination?.total;
+        this.knownTotal = typeof receivedTotal === 'number' && receivedTotal > 0;
+        if (this.knownTotal) {
+          this.totalMembers = receivedTotal;
+        } else {
+          // Fallback: if we don't know the true total from backend, infer a reasonable length
+          // - If page is full, assume at least one more page exists
+          // - If page is partial, cap to the items we've seen so far
+          if (this.members.length === this.pageSize) {
+            this.totalMembers = (this.pageIndex + 2) * this.pageSize;
+          } else {
+            this.totalMembers = this.pageIndex * this.pageSize + this.members.length;
+          }
+        }
         this.loading = false;
       },
       error: (error) => {

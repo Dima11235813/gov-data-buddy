@@ -94,22 +94,29 @@
 
 .features-section {
   padding: 4rem 2rem;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
+  background: #ffffff;
+  color: #111827;
 
   .section-title {
     text-align: center;
     font-size: 2.5rem;
     font-weight: 600;
     margin-bottom: 3rem;
+    color: #0b2b6b;
   }
 
   .features-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.2rem;
+    grid-template-columns: repeat(4, minmax(240px, 1fr));
+    gap: 1.5rem 1.5rem;
     max-width: 1200px;
     margin: 0 auto;
+
+    // Ensure cards render with dark text, not inherited white from hero
+    .button-card {
+      color: #111827;
+      text-decoration: none;
+    }
   }
 }
 
@@ -244,7 +251,7 @@
     }
 
     .features-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, 1fr);
       gap: 1.5rem;
 
       .feature-card {

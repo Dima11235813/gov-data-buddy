@@ -1,22 +1,24 @@
 <header class="site-header">
   <div class="container">
-    <a class="brand" routerLink="/" aria-label="Government Data Buddy home">
+    <app-link class="brand" [routerLink]="['/']" ariaLabel="Government Data Buddy home">
       <mat-icon class="brand-icon">account_balance</mat-icon>
       <span class="brand-text">Government Data Buddy</span>
-    </a>
+    </app-link>
 
     <nav class="nav-links" aria-label="Primary">
-      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
-      <a routerLink="/bills" routerLinkActive="active">Bills</a>
-      <a routerLink="/members" routerLinkActive="active">Members</a>
-      <a routerLink="/committee" routerLinkActive="active">Committees</a>
+      <app-link materialStyle="button" [routerLink]="['/']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</app-link>
+      <app-link materialStyle="button" [routerLink]="['/bills']" routerLinkActive="active">Bills</app-link>
+      <app-link materialStyle="button" [routerLink]="['/members']" routerLinkActive="active">Members</app-link>
+      <app-link materialStyle="button" [routerLink]="['/committee']" routerLinkActive="active">Committees</app-link>
     </nav>
 
     <div class="nav-actions">
-      <a class="btn-link" routerLink="/bills">
+      <app-link class="btn-link" materialStyle="raised" color="primary" [routerLink]="['/bills']">
         <mat-icon>search</mat-icon>
-        Start Your Search
-      </a>
+        <mat-text-column>
+          Start Your Search
+        </mat-text-column>
+      </app-link>
     </div>
   </div>
 </header>

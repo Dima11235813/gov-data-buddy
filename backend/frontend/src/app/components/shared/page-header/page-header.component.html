@@ -5,18 +5,18 @@
       <p class="subtitle" *ngIf="subtitle">{{ subtitle }}</p>
     </div>
     <nav class="nav-links" *ngIf="showNav">
-      <button mat-button routerLink="/" routerLinkActive="active">
+      <app-link materialStyle="button" [routerLink]="['/']" routerLinkActive="active">
         <mat-icon>home</mat-icon>
         Home
-      </button>
-      <button mat-button routerLink="/bills" routerLinkActive="active">
+      </app-link>
+      <app-link materialStyle="button" [routerLink]="['/bills']" routerLinkActive="active">
         <mat-icon>description</mat-icon>
         Bills
-      </button>
-      <button mat-button routerLink="/committee" routerLinkActive="active">
+      </app-link>
+      <app-link materialStyle="button" [routerLink]="['/committee']" routerLinkActive="active">
         <mat-icon>account_balance</mat-icon>
         Committees
-      </button>
+      </app-link>
     </nav>
   </div>
 </div>

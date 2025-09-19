@@ -14,6 +14,7 @@ import { StatusSelectComponent } from './ui/status-select/status-select.componen
 import { BillCardComponent } from './ui/bill-card/bill-card.component';
 import { NoDataComponent } from './ui/no-data/no-data.component';
 import { ServiceUnavailableComponent } from './ui/service-unavailable/service-unavailable.component';
+import { LinkComponent } from './ui/link/link.component';
 
 @NgModule({
   declarations: [
@@ -26,7 +27,8 @@ import { ServiceUnavailableComponent } from './ui/service-unavailable/service-un
     StatusSelectComponent,
     BillCardComponent,
     NoDataComponent,
-    ServiceUnavailableComponent
+    ServiceUnavailableComponent,
+    LinkComponent
   ],
   imports: [
     CommonModule,
@@ -44,7 +46,8 @@ import { ServiceUnavailableComponent } from './ui/service-unavailable/service-un
     StatusSelectComponent,
     BillCardComponent,
     NoDataComponent,
-    ServiceUnavailableComponent
+    ServiceUnavailableComponent,
+    LinkComponent
   ]
 })
 export class SharedComponentsModule { }

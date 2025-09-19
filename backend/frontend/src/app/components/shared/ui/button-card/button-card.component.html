@@ -1,4 +1,4 @@
-<a class="button-card" [routerLink]="routerLink" (click)="onClick()">
+<app-link class="button-card" [materialStyle]="null" [routerLink]="routerLink" (click)="onClick()">
   <div class="icon" *ngIf="icon">
     <mat-icon>{{ icon }}</mat-icon>
   </div>
@@ -7,6 +7,6 @@
     <p>{{ description }}</p>
     <span class="cta">Explore <mat-icon>arrow_forward</mat-icon></span>
   </div>
-</a>
+</app-link>
 
 

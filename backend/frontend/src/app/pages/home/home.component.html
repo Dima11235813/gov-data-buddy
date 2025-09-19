@@ -7,8 +7,12 @@
         enterprise-grade architecture, and intelligent caching.
       </p>
       <div class="hero-actions">
-        <a class="cta-button primary" routerLink="/bills"><mat-icon>description</mat-icon> Start Your Search</a>
-        <a class="cta-button" routerLink="/bills"><mat-icon>dataset</mat-icon> See All Data Sources</a>
+        <app-link class="cta-button primary" materialStyle="raised" color="primary" [routerLink]="['/bills']">
+          <mat-icon>description</mat-icon> Start Your Search
+        </app-link>
+        <app-link class="cta-button" materialStyle="raised" [routerLink]="['/bills']">
+          <mat-icon>dataset</mat-icon> See All Data Sources
+        </app-link>
       </div>
       <div class="hero-metrics">
         <div class="metric"><strong>1000s</strong><span>Bills & Laws</span></div>
@@ -23,16 +27,33 @@
   </div>
 
   <div class="features-section">
-    <h2 class="section-title">What You Can Do</h2>
+    <h2 class="section-title">Comprehensive Congressional Data Sources</h2>
+    <div class="section-intro" style="max-width: 900px; margin: 0 auto 2rem; text-align: center; opacity: 0.9;">
+      Government Data Buddy provides enterprise‑grade access to the full range of U.S. Congressional data with modern architecture and user‑friendly interfaces.
+    </div>
     <div class="features-grid">
       <app-button-card routerLink="/bills" icon="gavel" title="Bills"
-        description="Track every piece of legislation with full text, summaries, and real-time status updates."></app-button-card>
+        description="Track every piece of legislation with full text, summaries, and real‑time status updates."></app-button-card>
       <app-button-card routerLink="/bills" icon="balance" title="Laws"
         description="Find enacted Public and Private Laws, including their legislative history."></app-button-card>
       <app-button-card routerLink="/members" icon="groups" title="Members of Congress"
         description="Biographies, sponsored legislation, and contact information for every member."></app-button-card>
       <app-button-card routerLink="/committee" icon="account_balance" title="Committees"
-        description="Committee structures, rosters, meeting schedules, and reports."></app-button-card>
+        description="Committee structures, member rosters, meeting schedules, and associated reports."></app-button-card>
+
+      <app-button-card routerLink="/bills" icon="rule" title="Amendments"
+        description="Review proposed changes to legislation, including sponsors and voting records."></app-button-card>
+      <app-button-card routerLink="/bills" icon="menu_book" title="Congressional Record"
+        description="Access the official record of daily floor debates and proceedings in multiple formats."></app-button-card>
+      <app-button-card routerLink="/bills" icon="mail" title="Communications"
+        description="Browse formal communications from the Executive Branch and federal agencies to Congress."></app-button-card>
+      <app-button-card routerLink="/bills" icon="how_to_vote" title="Nominations"
+        description="Monitor Presidential nominations, their status, and the committees reviewing them."></app-button-card>
+
+      <app-button-card routerLink="/bills" icon="description" title="CRS Reports"
+        description="In‑depth, non‑partisan research and analysis from the Congressional Research Service."></app-button-card>
+      <app-button-card routerLink="/bills" icon="public" title="Treaties"
+        description="Review detailed information on U.S. treaties and related congressional actions."></app-button-card>
     </div>
   </div>
 
@@ -66,8 +87,12 @@
     <h2>Ready to Explore Congressional Data?</h2>
     <p>Start exploring the full range of Congressional data with our user‑friendly interface and enterprise‑grade performance.</p>
     <div class="cta-buttons">
-      <a class="cta-button primary large" routerLink="/bills"><mat-icon>description</mat-icon> Browse Bills</a>
-      <a class="cta-button large" routerLink="/committee"><mat-icon>account_balance</mat-icon> Explore Committees</a>
+      <app-link class="cta-button primary large" materialStyle="raised" color="primary" [routerLink]="['/bills']">
+        <mat-icon>description</mat-icon> Browse Bills
+      </app-link>
+      <app-link class="cta-button large" materialStyle="raised" [routerLink]="['/committee']">
+        <mat-icon>account_balance</mat-icon> Explore Committees
+      </app-link>
     </div>
   </div>
 </div>

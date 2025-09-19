@@ -9,7 +9,7 @@ export class ButtonCardComponent {
   @Input() title = '';
   @Input() description = '';
   @Input() icon: string | undefined;
-  @Input() routerLink: string | string[] | undefined;
+  @Input() routerLink: string | string[] | null = null;
 
   @Output() clicked = new EventEmitter<void>();
 
