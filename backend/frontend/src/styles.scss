@@ -1,4 +1,50 @@
-/* You can add global styles to this file, and also import other style files */
+/* Angular Material Theme */
+@use '@angular/material' as mat;
 
+// Color tokens inspired by the Home page design
+$primary: mat.define-palette(mat.$indigo-palette, 600, 500, 700);
+$accent: mat.define-palette(mat.$blue-palette, 500, 400, 700);
+$warn: mat.define-palette(mat.$red-palette);
+
+$theme: mat.define-light-theme((
+  color: (
+    primary: $primary,
+    accent: $accent,
+    warn: $warn
+  ),
+  typography: mat.define-typography-config(
+    $font-family: 'Inter, Roboto, "Helvetica Neue", Arial, sans-serif'
+  ),
+  density: 0
+));
+
+@include mat.core();
+@include mat.all-component-themes($theme);
+
+:root {
+  --gdb-surface: #ffffff;
+  --gdb-surface-2: #f8fafc;
+  --gdb-border: #e2e8f0;
+  --gdb-heading: #0f172a;
+  --gdb-text: #1f2937;
+  --gdb-muted: #64748b;
+  --gdb-chip-enacted-bg: #dcfce7;
+  --gdb-chip-enacted-fg: #166534;
+  --gdb-chip-passed-bg: #dbeafe;
+  --gdb-chip-passed-fg: #1e40af;
+  --gdb-chip-committee-bg: #fef9c3;
+  --gdb-chip-committee-fg: #854d0e;
+  --gdb-chip-introduced-bg: #fee2e2;
+  --gdb-chip-introduced-fg: #991b1b;
+}
+
+/* Global resets */
 html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+body { margin: 0; font-family: Inter, Roboto, "Helvetica Neue", Arial, sans-serif; color: var(--gdb-text); }
+
+/* Utility classes aligning with designs */
+.container-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}

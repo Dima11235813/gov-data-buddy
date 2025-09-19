@@ -1,5 +1,8 @@
 .bill-card {
   margin-bottom: 1rem;
+  border: 1px solid var(--gdb-border);
+  box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(2,6,23,.06);
+  background: var(--gdb-surface);
 }
 
 .bill-meta {
@@ -22,15 +25,15 @@
   font-weight: 600;
   border-radius: 9999px;
   padding: .1rem .5rem;
-  &.enacted { background: #dcfce7; color: #166534; }
-  &.passed\ house { background: #dbeafe; color: #1e40af; }
-  &.in\ committee { background: #fef9c3; color: #854d0e; }
-  &.introduced { background: #fee2e2; color: #991b1b; }
+  &.enacted { background: var(--gdb-chip-enacted-bg); color: var(--gdb-chip-enacted-fg); }
+  &.passed\ house { background: var(--gdb-chip-passed-bg); color: var(--gdb-chip-passed-fg); }
+  &.in\ committee { background: var(--gdb-chip-committee-bg); color: var(--gdb-chip-committee-fg); }
+  &.introduced { background: var(--gdb-chip-introduced-bg); color: var(--gdb-chip-introduced-fg); }
 }
 
 .bill-title {
   margin: .25rem 0 1rem 0;
-  color: #0f172a;
+  color: var(--gdb-heading);
 }
 
 .bill-details {
@@ -44,7 +47,7 @@
   display: flex;
   align-items: center;
   gap: .35rem;
-  color: #475569;
+  color: var(--gdb-muted);
 }
 
 .actions {
