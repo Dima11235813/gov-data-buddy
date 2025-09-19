@@ -6,6 +6,7 @@ import { Request, Response } from 'express';
 import { Repository } from 'typeorm';
 import { Member } from '../entity/MemberEntity';
 import { MemberPicture } from '../entity/MemberPictureEntity';
+import { createDateRange } from '../../shared/utils/date-utils';
 import {
     downloadAndStoreMemberPicture,
     getCurrentMemberPicture,
@@ -240,9 +241,21 @@ export const fetchMembersByCongress = async (
 
         // Cache member data
         if (data.members && Array.isArray(data.members)) {
-            // Get picture repository from the same data source
             const pictureRepository = memberRepository.manager.getRepository(MemberPicture);
-            await cacheMemberData(data.members, memberRepository, `congress=${congress}`, pictureRepository);
+
+            // Create query record for tracking
+            const { QueryService, QueryEndpointEnum } = require('../service/query.service');
+            const { GovApiQuery } = require('../entity/GovApiQuery');
+
+            const queryService = new QueryService(memberRepository.manager.getRepository(GovApiQuery));
+            const queryRecord = await queryService.findOrCreateQuery(
+                QueryEndpointEnum.MEMBERS,
+                { congress },
+                `congress=${congress}`,
+                data.members.length
+            );
+
+            await cacheMemberData(data.members, memberRepository, queryRecord.id, pictureRepository);
         }
 
         return data;
@@ -277,7 +290,20 @@ export const fetchMembersByState = async (
         // Cache member data
         if (data.members && Array.isArray(data.members)) {
             const pictureRepository = memberRepository.manager.getRepository(MemberPicture);
-            await cacheMemberData(data.members, memberRepository, `state=${stateCode}`, pictureRepository);
+
+            // Create query record for tracking
+            const { QueryService, QueryEndpointEnum } = require('../service/query.service');
+            const { GovApiQuery } = require('../entity/GovApiQuery');
+
+            const queryService = new QueryService(memberRepository.manager.getRepository(GovApiQuery));
+            const queryRecord = await queryService.findOrCreateQuery(
+                QueryEndpointEnum.MEMBERS,
+                { state: stateCode },
+                `state=${stateCode}`,
+                data.members.length
+            );
+
+            await cacheMemberData(data.members, memberRepository, queryRecord.id, pictureRepository);
         }
 
         return data;
@@ -313,7 +339,20 @@ export const fetchMembersByStateDistrict = async (
         // Cache member data
         if (data.members && Array.isArray(data.members)) {
             const pictureRepository = memberRepository.manager.getRepository(MemberPicture);
-            await cacheMemberData(data.members, memberRepository, `state=${stateCode}&district=${district}`, pictureRepository);
+
+            // Create query record for tracking
+            const { QueryService, QueryEndpointEnum } = require('../service/query.service');
+            const { GovApiQuery } = require('../entity/GovApiQuery');
+
+            const queryService = new QueryService(memberRepository.manager.getRepository(GovApiQuery));
+            const queryRecord = await queryService.findOrCreateQuery(
+                QueryEndpointEnum.MEMBERS,
+                { state: stateCode, district },
+                `state=${stateCode}&district=${district}`,
+                data.members.length
+            );
+
+            await cacheMemberData(data.members, memberRepository, queryRecord.id, pictureRepository);
         }
 
         return data;
@@ -350,7 +389,20 @@ export const fetchMembersByCongressStateDistrict = async (
         // Cache member data
         if (data.members && Array.isArray(data.members)) {
             const pictureRepository = memberRepository.manager.getRepository(MemberPicture);
-            await cacheMemberData(data.members, memberRepository, `congress=${congress}&state=${stateCode}&district=${district}`, pictureRepository);
+
+            // Create query record for tracking
+            const { QueryService, QueryEndpointEnum } = require('../service/query.service');
+            const { GovApiQuery } = require('../entity/GovApiQuery');
+
+            const queryService = new QueryService(memberRepository.manager.getRepository(GovApiQuery));
+            const queryRecord = await queryService.findOrCreateQuery(
+                QueryEndpointEnum.MEMBERS,
+                { congress, state: stateCode, district },
+                `congress=${congress}&state=${stateCode}&district=${district}`,
+                data.members.length
+            );
+
+            await cacheMemberData(data.members, memberRepository, queryRecord.id, pictureRepository);
         }
 
         return data;
@@ -360,13 +412,14 @@ export const fetchMembersByCongressStateDistrict = async (
 };
 
 // Helper function to cache member data
-async function cacheMemberData(members: any[], memberRepository: Repository<Member>, searchQuery: string, pictureRepository?: Repository<MemberPicture>) {
+async function cacheMemberData(members: any[], memberRepository: Repository<Member>, queryId: string, pictureRepository?: Repository<MemberPicture>) {
+
     for (const raw of members) {
         const memberData = raw.member ?? raw;
         try {
             const transformed: any = {};
 
-            transformed.searchQuery = searchQuery;
+            transformed.queryId = queryId;
             transformed.bioguideId = memberData.bioguideId;
             transformed.name = memberData.name ?? memberData.directOrderName ?? 'Unknown';
             transformed.party = memberData.party ?? memberData.partyName ?? 'Unknown';
@@ -459,7 +512,8 @@ async function cacheMemberData(members: any[], memberRepository: Repository<Memb
                 // Update existing member only if data has changed significantly
                 // For now, we'll update if the updateDate is different or if key fields are missing
                 const needsUpdate = !existingMember.birthYear && transformed.birthYear ||
-                                  existingMember.updateDate.getTime() !== transformed.updateDate.getTime();
+                                  existingMember.updateDate.getTime() !== transformed.updateDate.getTime() ||
+                                  existingMember.queryId !== queryId; // Also update if queryId is different
 
                 if (!needsUpdate) {
                     console.log(`Member ${memberData.bioguideId} already cached and up to date`);
@@ -471,7 +525,7 @@ async function cacheMemberData(members: any[], memberRepository: Repository<Memb
             await validate(member);
 
             const savedMember = await memberRepository.save(member);
-            console.log(`${existingMember ? 'Updated' : 'Cached'} member: ${member.name} (${member.bioguideId})`);
+            console.log(`${existingMember ? 'Updated' : 'Cached'} member: ${member.name} (${member.bioguideId}) with queryId: ${savedMember.queryId}`);
 
             // Download and store member picture if available
             if (pictureRepository && memberData.depiction?.imageUrl) {
@@ -503,6 +557,25 @@ async function cacheMemberData(members: any[], memberRepository: Repository<Memb
     }
 }
 
+// Helper function to parse query parameters
+export function parseQueryParams(queryString: string): Record<string, any> {
+    const params: Record<string, any> = {};
+    const urlParams = new URLSearchParams(queryString);
+
+    for (const [key, value] of urlParams.entries()) {
+        // Try to parse as number, boolean, or keep as string
+        if (!isNaN(Number(value))) {
+            params[key] = Number(value);
+        } else if (value === 'true' || value === 'false') {
+            params[key] = value === 'true';
+        } else {
+            params[key] = value;
+        }
+    }
+
+    return params;
+}
+
 // Helper function to handle API errors
 function handleMemberApiError(error: any, context: string) {
     if (axios.isAxiosError(error)) {
@@ -524,8 +597,81 @@ function handleMemberApiError(error: any, context: string) {
 // VALID QUERY for this years members
 // http://localhost:3000/member?fromDateTime=2023-01-01T00%3A00%3A00Z&toDateTime=2023-05-27T00%3A00%3A00Z
 async function fetchMemberData(memberRepository: Repository<Member>, queryParams: string) {
+    console.log(`🔍 Checking cache for query: ${queryParams}`);
+
+    // Parse query parameters for cache lookup
+    const parsedParams = parseQueryParams(queryParams);
+
+    // Initialize query service for cache checking
+    const { QueryService, QueryEndpointEnum } = require('../service/query.service');
+    const { GovApiQuery } = require('../entity/GovApiQuery');
+
+    const queryService = new QueryService(memberRepository.manager.getRepository(GovApiQuery));
+
+    // Check if we have a cached query record
+    const sortedParsedParams = Object.keys(parsedParams).sort().reduce((sorted, key) => {
+        sorted[key] = parsedParams[key];
+        return sorted;
+    }, {} as Record<string, any>);
+    const normalizedParamsStr = JSON.stringify(sortedParsedParams);
+
+    const existingQuery = await queryService.queryRepository.findOne({
+        where: {
+            endpoint: QueryEndpointEnum.MEMBERS,
+            normalizedParams: normalizedParamsStr
+        }
+    });
+
+    if (existingQuery) {
+        console.log(`✅ CACHE HIT: Found existing query record ${existingQuery.id}`);
+
+        // Get members associated with this query
+        const cachedMembers = await memberRepository.findBy({ queryId: existingQuery.id });
+
+        console.log(`🔍 API: Found ${cachedMembers.length} cached members for query ID: ${existingQuery.id}`);
+
+        if (cachedMembers.length > 0) {
+            console.log(`🚀 RETURNING ${cachedMembers.length} CACHED MEMBERS`);
+
+            // Update hit count
+            existingQuery.hitCount += 1;
+            existingQuery.lastExecutedAt = new Date();
+            await queryService.queryRepository.save(existingQuery);
+
+            // Attach picture data and return
+            const pictureRepository = memberRepository.manager.getRepository(MemberPicture);
+            const membersWithPictures = await Promise.all(
+                cachedMembers.map(async (member) => {
+                    const memberResponse = { ...member }; // Create response object
+                    try {
+                        const currentPicture = await getCurrentMemberPicture(member.bioguideId, pictureRepository);
+                        if (currentPicture) {
+                            const pictureData = getMemberPictureData(currentPicture);
+                            if (pictureData) {
+                                (memberResponse as any).currentPicture = {
+                                    id: currentPicture.id,
+                                    base64Data: pictureData.base64Data,
+                                    contentType: pictureData.contentType,
+                                    version: currentPicture.version,
+                                    isCurrentVersion: currentPicture.isCurrentVersion,
+                                    attribution: currentPicture.attribution
+                                };
+                            }
+                        }
+                    } catch (pictureError) {
+                        console.warn(`Failed to attach picture data for ${member.bioguideId}:`, pictureError);
+                    }
+                    return memberResponse;
+                })
+            );
+
+            return { members: membersWithPictures };
+        }
+    }
+
+    console.log(`❌ CACHE MISS: Making API call for ${queryParams}`);
+
     const API_URL = `https://api.congress.gov/v3/member?${queryParams}`;
-    console.log(`Fetching for API_URL ${API_URL}`)
     const API_DATA_GOV = process.env.API_DATA_GOV;
 
     if (!API_DATA_GOV) {
@@ -533,18 +679,34 @@ async function fetchMemberData(memberRepository: Repository<Member>, queryParams
     }
 
     try {
+        console.log(`🌐 Fetching for API_URL ${API_URL}`)
         const response = await axios.get(`${API_URL}&api_key=${API_DATA_GOV}`, {
             headers: { accept: 'application/json' },
             timeout: 15000 // 15 second timeout
         });
 
         const data = response.data;
-        console.log(`Got data for ${data.members?.length || 0} members`)
+        console.log(`📥 Got data for ${data.members?.length || 0} members`)
 
         // Save members data to database with transformation/validation
         if (data.members && Array.isArray(data.members)) {
             const pictureRepository = memberRepository.manager.getRepository(MemberPicture);
-            await cacheMemberData(data.members, memberRepository, queryParams, pictureRepository);
+
+            // Extract date range from query params for query tracking
+            const dateRange = createDateRange(parsedParams.fromDateTime as string, parsedParams.toDateTime as string);
+            const { fromDateTime, toDateTime } = dateRange;
+
+            // Create query record for tracking
+            const queryRecord = await queryService.findOrCreateQuery(
+                QueryEndpointEnum.MEMBERS,
+                parsedParams,
+                queryParams,
+                data.members.length,
+                fromDateTime,
+                toDateTime
+            );
+
+            await cacheMemberData(data.members, memberRepository, queryRecord.id, pictureRepository);
 
             // Attach current picture data to the response
             for (const memberWrapper of data.members) {

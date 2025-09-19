@@ -29,7 +29,7 @@ import { MembersService } from '../../../service/members.service';
             </mat-card-header>
             <mat-card-content>
               <div class="bills-grid">
-                <mat-card class="bill-item" *ngFor="let bill of bills" [routerLink]="['/bills', bill.congress, bill.type?.toLowerCase(), bill.number]">
+                <mat-card class="bill-item" *ngFor="let bill of bills" [routerLink]="['/bills/details', bill.congress, bill.type?.toLowerCase(), bill.number]">
                   <mat-card-header>
                     <mat-card-title>{{ bill.type }}{{ bill.number }} - {{ bill.congress }}</mat-card-title>
                     <mat-card-subtitle>{{ bill.title }}</mat-card-subtitle>

@@ -1,4 +1,9 @@
 # Backend Naming Conventions and Code Standards
+# ⚡ CRITICAL: ACCESSIBILITY & API EFFICIENCY are FIRST PRIORITY ⚡
+# Accessibility and inclusive UX are mandatory across frontend and backend outputs.
+# This application must prioritize efficient usage of public resources (Congress.gov API).
+# CACHING IS A FIRST-CLASS CITIZEN - Database-first policy is MANDATORY for all external API calls.
+# Never call external APIs unnecessarily - always check cache first, implement incremental fetching.
 
 ## File Naming Conventions
 
@@ -286,6 +291,29 @@ Normalization helper guidelines:
 TTL/Refresh (optional):
 - If staleness matters, add `updatedAt` checks and a refresh interval; otherwise default to permanent cache until explicit invalidation.
 
+### 4. Query Tracking & Incremental Fetching (MANDATORY)
+
+Implement a robust query tracking system to enable incremental fetching and prevent redundant API calls:
+
+**Query ID System:**
+- Create a `QueryEntity` table to store unique query metadata
+- Each query gets a UUID and stores normalized parameters, timestamp, result count
+- Member/Bill/Committee records reference the query ID that fetched them
+- Enables historical snapshots and change detection
+
+**Incremental Fetching Logic:**
+- When a new query arrives, check for overlapping date ranges in existing queries
+- If partial overlap exists, only fetch the missing delta
+- Combine cached + new data seamlessly for the user
+- Example: If we have data for 2024 and user requests 2024-2025, only fetch 2025 data
+
+**Implementation Requirements:**
+- [ ] Create `QueryEntity` with fields: id, endpoint, normalizedParams, timestamp, resultCount
+- [ ] Add `queryId` foreign key to Member, Bill, Committee entities
+- [ ] Implement query overlap detection algorithm
+- [ ] Add incremental fetching middleware to all API endpoints
+- [ ] Create query deduplication logic to prevent identical concurrent requests
+
 ## Security Standards
 
 ### 1. Input Validation
@@ -331,3 +359,32 @@ TTL/Refresh (optional):
 - [ ] Input validation implemented
 - [ ] Error handling implemented
 - [ ] Performance considerations addressed
+ - [ ] Accessibility considerations addressed (semantics, keyboard, focus, contrast)
+
+## Accessibility Standards
+
+### 1. Link vs Button Semantics
+- Use `<a>` for navigation and URLs; use `<button>` for actions. Do not simulate links with `div`/`span` or click handlers.
+- Links must have an `href` or an Angular `routerLink` on an `<a>` element to preserve native behaviors: Ctrl/Cmd+Click, middle-click, context menu, status bar preview, and focus navigation.
+
+### 2. Angular Router Links
+- Prefer semantic anchors: `<a [routerLink]="['/path']">` over clickable non-anchor elements.
+- Include descriptive, meaningful link text. Avoid “click here”.
+- When opening external resources, use `rel="noopener" target="_blank"` as appropriate.
+
+### 3. Keyboard and Focus
+- All interactive elements must be reachable via Tab and activatable via Enter/Space (Space for buttons only).
+- Maintain visible focus styles. Never remove outlines without providing an accessible replacement.
+
+### 4. Names, Roles, States
+- Provide `aria-label` or `aria-labelledby` where the visible text may be ambiguous.
+- Ensure ARIA only augments, not replaces, correct native semantics.
+
+### 5. Color and Contrast
+- Ensure sufficient contrast for text and interactive elements per WCAG 2.1 AA.
+
+### 6. Announcements and Loading
+- Prefer semantic status messaging; use live regions only when necessary and with restraint.
+
+### 7. Testing
+- Verify: keyboard-only flow, screen reader link announcements, and native link behaviors (Ctrl/Cmd+Click, middle-click, hover URL preview).

@@ -18,6 +18,7 @@ import {
 import { AppDataSource } from "../datasource/sqlite-datasource";
 import { Member } from "../entity/MemberEntity";
 import { MemberPicture } from "../entity/MemberPictureEntity";
+import { parseDateParams, createDateRange } from "../../shared/utils/date-utils";
 
 // Runtime cache for member data to avoid repeated database queries
 const memberCache = new Map<string, { data: any; timestamp: number }>();
@@ -90,16 +91,55 @@ export namespace MembersController {
         const take = parseInt(limit as string);
         const skip = parseInt(offset as string);
 
-        let cachedMembers: Member[] = []
+        // 🔍 CACHE LOOKUP: Try to find cached query and members FIRST
+        const { QueryService, QueryEndpointEnum } = require('../service/query.service');
+        const { GovApiQuery } = require('../entity/GovApiQuery');
+        const { parseQueryParams } = require('../api/member.api');
+
+        const queryService = new QueryService(memberRepository.manager.getRepository(GovApiQuery));
+
+        // Convert req.query to query string format first, then parse it consistently
+        const queryString = new URLSearchParams(req.query as any).toString();
+        const normalizedParams = parseQueryParams(queryString);
+        // Add format parameter to match API layer normalization
+        normalizedParams.format = req.query.format || 'json';
+
+        let cachedMembers: Member[] = [];
         try {
-            cachedMembers = await memberRepository.findBy({ searchQuery: `${req.query}` });
-            console.log(`cachedMembers: ${cachedMembers.length}`)
+            // Find existing query record
+            const sortedNormalizedParams = Object.keys(normalizedParams).sort().reduce((sorted, key) => {
+                sorted[key] = normalizedParams[key];
+                return sorted;
+            }, {} as Record<string, any>);
+            const normalizedParamsStr = JSON.stringify(sortedNormalizedParams);
+
+            const existingQuery = await queryService.queryRepository.findOne({
+                where: {
+                    endpoint: QueryEndpointEnum.MEMBERS,
+                    normalizedParams: normalizedParamsStr
+                }
+            });
+
+            if (existingQuery) {
+                // Update hit count
+                existingQuery.hitCount += 1;
+                existingQuery.lastExecutedAt = new Date();
+                await queryService.queryRepository.save(existingQuery);
+
+                // Find members associated with this query
+                cachedMembers = await memberRepository.findBy({ queryId: existingQuery.id });
+                console.log(`✅ CACHE HIT: Found ${cachedMembers.length} cached members for query ID: ${existingQuery.id}`);
+
+            } else {
+                console.log(`❌ CACHE MISS: No cached query found for: ${JSON.stringify(normalizedParams)}`);
+            }
         } catch (e) {
-            console.log(e)
-            console.warn(`No members table exists yet.`)
+            console.log(e);
+            console.warn(`Database query failed, will fetch from API.`);
         }
 
         if (cachedMembers.length > 0) {
+            console.log(`🚀 RETURNING CACHED DATA: ${cachedMembers.length} members`);
             // Apply pagination to cached results
             const paginatedMembers = cachedMembers.slice(skip, skip + take);
 
@@ -151,6 +191,10 @@ export namespace MembersController {
             });
             return;
         } else {
+            // 🌐 CACHE MISS: Fetch from API
+            console.log(`🌐 CACHE MISS: Fetching from API - ${JSON.stringify(normalizedParams)}`);
+            console.log(`Getting members from api gov!`);
+
             // Fetch from API and handle pagination there
             getMembers(req, res, memberRepository, { format, offset, limit, fromDateTime, toDateTime } as any);
         }
@@ -211,9 +255,32 @@ export namespace MembersController {
             }
 
             // Try to get from database first (cache)
+            const { QueryService, QueryEndpointEnum } = require('../service/query.service');
+            const { GovApiQuery } = require('../entity/GovApiQuery');
+            const { parseQueryParams } = require('../api/member.api');
+
+            const queryService = new QueryService(memberRepository.manager.getRepository(GovApiQuery));
             let cachedMembers: Member[] = [];
+
             try {
-                cachedMembers = await memberRepository.findBy({ searchQuery: `congress=${congressNum}` });
+                // Find existing query record
+                const existingQuery = await queryService.queryRepository.findOne({
+                    where: {
+                        endpoint: QueryEndpointEnum.MEMBERS,
+                        normalizedParams: JSON.stringify({ congress: congressNum })
+                    }
+                });
+
+                if (existingQuery) {
+                    // Update hit count
+                    existingQuery.hitCount += 1;
+                    existingQuery.lastExecutedAt = new Date();
+                    await queryService.queryRepository.save(existingQuery);
+
+                    // Find members associated with this query
+                    cachedMembers = await memberRepository.findBy({ queryId: existingQuery.id });
+                    console.log(`Found ${cachedMembers.length} cached members for congress ${congressNum}`);
+                }
             } catch (dbError) {
                 console.warn('Database query failed, falling back to API:', dbError);
             }
@@ -264,9 +331,32 @@ export namespace MembersController {
             }
 
             // Try to get from database first (cache)
+            const { QueryService, QueryEndpointEnum } = require('../service/query.service');
+            const { GovApiQuery } = require('../entity/GovApiQuery');
+            const { parseQueryParams } = require('../api/member.api');
+
+            const queryService = new QueryService(memberRepository.manager.getRepository(GovApiQuery));
             let cachedMembers: Member[] = [];
+
             try {
-                cachedMembers = await memberRepository.findBy({ searchQuery: `state=${stateCode}` });
+                // Find existing query record
+                const existingQuery = await queryService.queryRepository.findOne({
+                    where: {
+                        endpoint: QueryEndpointEnum.MEMBERS,
+                        normalizedParams: JSON.stringify({ state: stateCode })
+                    }
+                });
+
+                if (existingQuery) {
+                    // Update hit count
+                    existingQuery.hitCount += 1;
+                    existingQuery.lastExecutedAt = new Date();
+                    await queryService.queryRepository.save(existingQuery);
+
+                    // Find members associated with this query
+                    cachedMembers = await memberRepository.findBy({ queryId: existingQuery.id });
+                    console.log(`Found ${cachedMembers.length} cached members for state ${stateCode}`);
+                }
             } catch (dbError) {
                 console.warn('Database query failed, falling back to API:', dbError);
             }
@@ -325,9 +415,32 @@ export namespace MembersController {
             }
 
             // Try to get from database first (cache)
+            const { QueryService, QueryEndpointEnum } = require('../service/query.service');
+            const { GovApiQuery } = require('../entity/GovApiQuery');
+            const { parseQueryParams } = require('../api/member.api');
+
+            const queryService = new QueryService(memberRepository.manager.getRepository(GovApiQuery));
             let cachedMembers: Member[] = [];
+
             try {
-                cachedMembers = await memberRepository.findBy({ searchQuery: `state=${stateCode}&district=${districtNum}` });
+                // Find existing query record
+                const existingQuery = await queryService.queryRepository.findOne({
+                    where: {
+                        endpoint: QueryEndpointEnum.MEMBERS,
+                        normalizedParams: JSON.stringify({ state: stateCode, district: districtNum })
+                    }
+                });
+
+                if (existingQuery) {
+                    // Update hit count
+                    existingQuery.hitCount += 1;
+                    existingQuery.lastExecutedAt = new Date();
+                    await queryService.queryRepository.save(existingQuery);
+
+                    // Find members associated with this query
+                    cachedMembers = await memberRepository.findBy({ queryId: existingQuery.id });
+                    console.log(`Found ${cachedMembers.length} cached members for state ${stateCode}, district ${districtNum}`);
+                }
             } catch (dbError) {
                 console.warn('Database query failed, falling back to API:', dbError);
             }
@@ -394,11 +507,32 @@ export namespace MembersController {
             }
 
             // Try to get from database first (cache)
+            const { QueryService, QueryEndpointEnum } = require('../service/query.service');
+            const { GovApiQuery } = require('../entity/GovApiQuery');
+            const { parseQueryParams } = require('../api/member.api');
+
+            const queryService = new QueryService(memberRepository.manager.getRepository(GovApiQuery));
             let cachedMembers: Member[] = [];
+
             try {
-                cachedMembers = await memberRepository.findBy({
-                    searchQuery: `congress=${congressNum}&state=${stateCode}&district=${districtNum}`
+                // Find existing query record
+                const existingQuery = await queryService.queryRepository.findOne({
+                    where: {
+                        endpoint: QueryEndpointEnum.MEMBERS,
+                        normalizedParams: JSON.stringify({ congress: congressNum, state: stateCode, district: districtNum })
+                    }
                 });
+
+                if (existingQuery) {
+                    // Update hit count
+                    existingQuery.hitCount += 1;
+                    existingQuery.lastExecutedAt = new Date();
+                    await queryService.queryRepository.save(existingQuery);
+
+                    // Find members associated with this query
+                    cachedMembers = await memberRepository.findBy({ queryId: existingQuery.id });
+                    console.log(`Found ${cachedMembers.length} cached members for congress ${congressNum}, state ${stateCode}, district ${districtNum}`);
+                }
             } catch (dbError) {
                 console.warn('Database query failed, falling back to API:', dbError);
             }

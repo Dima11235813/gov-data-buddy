@@ -5,7 +5,11 @@ import {
     Column,
     CreateDateColumn,
     UpdateDateColumn,
+    ManyToOne,
+    JoinColumn,
+    Index
 } from 'typeorm';
+import { GovApiQuery } from './GovApiQuery';
 import { Depiction } from './DepictionEntity';
 import { Served } from './ServedEntity';
 import { Term } from './TermEntity';
@@ -18,9 +22,13 @@ export class Member {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
-    @IsNotEmpty()
-    searchQuery: string;
+    @Column({ nullable: true })
+    @Index()
+    queryId?: string;
+
+    @ManyToOne(() => GovApiQuery, { nullable: true })
+    @JoinColumn({ name: 'queryId' })
+    query?: GovApiQuery;
 
     @Column()
     @IsNotEmpty()

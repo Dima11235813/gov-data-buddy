@@ -15,6 +15,7 @@ import { SponsorEntity } from "../entity/SponsorEntity";
 import { CBOCostEstimateEntity } from "../entity/CboCostEstimateEntity";
 import { CommitteeReport } from "../entity/CommitteeReportEntity";
 import { CommitteeEntity } from "../entity/CommitteeEntity";
+import { GovApiQuery } from "../entity/GovApiQuery";
 
 export const AppDataSource = new DataSource({
   type: 'sqlite',
@@ -40,6 +41,8 @@ export const AppDataSource = new DataSource({
     DepictionEntity,
     TermEntity,
     MemberPicture,
+    // QUERIES
+    GovApiQuery, // Temporarily disabled due to TypeScript decorator issues
     // COMMITTEE
     CommitteeEntity
   ],
