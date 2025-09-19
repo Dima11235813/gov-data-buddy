@@ -51,3 +51,4 @@ Implement a comprehensive Bills page that displays congressional bill informatio
 ## User Stories
 - [Story 006-001: Bills List UI with Search and Status Filter](./../stories/story-006-001-bills-list-ui.md)
 - [Story 006-002: Navigate to Bill Details](./../stories/story-006-002-bill-detail-navigation.md)
+- [Story 006-003: Persist Bills Filters in URL Query Params](./../stories/story-006-003-bills-query-param-persistence.md)

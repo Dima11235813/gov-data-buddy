@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Subject, debounceTime, takeUntil } from 'rxjs';
 import { BillStatusFilter } from '../shared/ui/status-select/status-select.component';
 import { BillsService } from 'src/app/service/bills.service';
 
@@ -7,16 +9,38 @@ import { BillsService } from 'src/app/service/bills.service';
   templateUrl: './bills.component.html',
   styleUrls: ['./bills.component.scss']
 })
-export class BillsComponent implements OnInit {
+export class BillsComponent implements OnInit, OnDestroy {
   bills: any[] = [];
   loading: boolean = true;
   searchQuery: string = '';
   statusFilter: BillStatusFilter = 'All';
   filteredBills: any[] = [];
 
-  constructor(private billsService: BillsService) { }
+  private destroy$ = new Subject<void>();
+  private searchUpdates$ = new Subject<string>();
+
+  constructor(
+    private billsService: BillsService,
+    private route: ActivatedRoute,
+    private router: Router
+  ) { }
 
   ngOnInit(): void {
+    // Initialize from query params
+    this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      const q = (params.get('q') || '').trim();
+      const statusParam = (params.get('status') || 'All') as BillStatusFilter;
+      const allowed: BillStatusFilter[] = ['All', 'Enacted', 'Passed House', 'In Committee', 'Introduced'];
+      this.statusFilter = allowed.includes(statusParam) ? statusParam : 'All';
+      this.searchQuery = q;
+      this.applyFilters();
+    });
+
+    // Debounce URL updates for search
+    this.searchUpdates$.pipe(debounceTime(300), takeUntil(this.destroy$)).subscribe(value => {
+      this.updateQueryParams({ q: value || null });
+    });
+
     this.loading = true;
     this.billsService.getBills().subscribe({
       next: (data) => {
@@ -34,12 +58,14 @@ export class BillsComponent implements OnInit {
   }
 
   onSearchChange(value: string): void {
-    this.searchQuery = (value || '').toLowerCase();
+    this.searchQuery = (value || '');
+    this.searchUpdates$.next(this.searchQuery);
     this.applyFilters();
   }
 
   onStatusChange(value: BillStatusFilter): void {
     this.statusFilter = value;
+    this.updateQueryParams({ status: value === 'All' ? null : value });
     this.applyFilters();
   }
 
@@ -65,5 +91,17 @@ export class BillsComponent implements OnInit {
     };
 
     this.filteredBills = (this.bills || []).filter(b => matchesSearch(b) && matchesStatus(b));
+  }
+
+  private updateQueryParams(params: { q?: string | null; status?: string | null }): void {
+    const queryParams: any = {};
+    if (params.q !== undefined) queryParams.q = params.q || null;
+    if (params.status !== undefined) queryParams.status = params.status || null;
+    this.router.navigate([], { queryParams, queryParamsHandling: 'merge' });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }
