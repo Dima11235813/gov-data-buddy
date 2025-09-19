@@ -1,0 +1,10 @@
+<div class="service-unavailable-container">
+  <div class="service-unavailable-content">
+    <mat-icon class="service-unavailable-icon">error_outline</mat-icon>
+    <h3 class="service-unavailable-title">{{ message }}</h3>
+    <p class="service-unavailable-subtitle">{{ subtitle }}</p>
+    <button *ngIf="showRetry" mat-raised-button color="primary" (click)="onRetry()">
+      {{ retryText }}
+    </button>
+  </div>
+</div>

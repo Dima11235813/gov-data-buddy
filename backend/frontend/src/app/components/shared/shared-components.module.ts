@@ -12,6 +12,8 @@ import { ButtonCardComponent } from './ui/button-card/button-card.component';
 import { SearchInputComponent } from './ui/search-input/search-input.component';
 import { StatusSelectComponent } from './ui/status-select/status-select.component';
 import { BillCardComponent } from './ui/bill-card/bill-card.component';
+import { NoDataComponent } from './ui/no-data/no-data.component';
+import { ServiceUnavailableComponent } from './ui/service-unavailable/service-unavailable.component';
 
 @NgModule({
   declarations: [
@@ -22,7 +24,9 @@ import { BillCardComponent } from './ui/bill-card/bill-card.component';
     ButtonCardComponent,
     SearchInputComponent,
     StatusSelectComponent,
-    BillCardComponent
+    BillCardComponent,
+    NoDataComponent,
+    ServiceUnavailableComponent
   ],
   imports: [
     CommonModule,
@@ -38,7 +42,9 @@ import { BillCardComponent } from './ui/bill-card/bill-card.component';
     ButtonCardComponent,
     SearchInputComponent,
     StatusSelectComponent,
-    BillCardComponent
+    BillCardComponent,
+    NoDataComponent,
+    ServiceUnavailableComponent
   ]
 })
 export class SharedComponentsModule { }

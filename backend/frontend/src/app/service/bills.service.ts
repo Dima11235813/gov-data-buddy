@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BillDto } from '@shared/Bill.model';
+import { BillDetailDto } from '@shared/BillDetail.model';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -19,16 +20,16 @@ export class BillsService {
     const composedUrl = `${this.API_URL_ROOT}/bill${url}`
     return this.http.get<any>(composedUrl)
   }
-  getBillDetails(congress: string, billType: string, billNumber: string): Observable<any> {
+  getBillDetails(congress: string, billType: string, billNumber: string): Observable<BillDetailDto> {
     const url = `${this.API_URL_ROOT}/bill/${congress}/${billType}/${billNumber}`;
     console.log('Fetching bill details from:', url);
-    return this.http.get<any>(url);
+    return this.http.get<BillDetailDto>(url);
   }
 
-  getBillDetailsByUrl = (url: string): Observable<any> => {
+  getBillDetailsByUrl = (url: string): Observable<BillDetailDto> => {
     const composedUrl = `${this.API_URL_ROOT}/bill${url.split('bill')[1]}`
     console.log("composedUrl")
     console.log(composedUrl)
-    return this.http.get<any>(composedUrl)
+    return this.http.get<BillDetailDto>(composedUrl)
   }
 }

@@ -8,10 +8,90 @@ import { BillDto } from '../../shared/Bill.model';
 import { BillDetailDto } from '../../shared/BillDetail.model';
 import { BillEntity } from '../entity/BillEntity';
 import { BillDetailsEntity } from '../entity/BillDetailsEntity';
+import { CommitteeReport } from '../entity/CommitteeReportEntity';
+import { CBOCostEstimateEntity } from '../entity/CboCostEstimateEntity';
 
 dotenv.config();
 
 const API_URL = 'https://api.congress.gov/v3/bill';
+
+// Helper function to transform API bill details to entity
+async function transformBillDetailsToEntity(billDetails: any): Promise<BillDetailsEntity> {
+    const entity = new BillDetailsEntity();
+
+    // Basic fields
+    entity.congress = billDetails.congress;
+    entity.number = billDetails.number;
+    entity.originChamber = billDetails.originChamber;
+    entity.originChamberCode = billDetails.originChamberCode;
+    entity.title = billDetails.title;
+    entity.type = billDetails.type;
+    entity.updateDate = billDetails.updateDate;
+    entity.updateDateIncludingText = billDetails.updateDateIncludingText;
+    entity.introducedDate = billDetails.introducedDate;
+    entity.legislationUrl = billDetails.legislationUrl || '';
+    entity.laws = billDetails.laws;
+
+    // Transform nested entities
+    if (billDetails.actions) {
+        entity.actions = billDetails.actions;
+    }
+
+    if (billDetails.amendments) {
+        entity.amendments = billDetails.amendments;
+    }
+
+    if (billDetails.committees) {
+        entity.committees = billDetails.committees;
+    }
+
+    if (billDetails.cosponsors) {
+        entity.cosponsors = billDetails.cosponsors;
+    }
+
+    if (billDetails.latestAction) {
+        entity.latestAction = billDetails.latestAction;
+    }
+
+    if (billDetails.policyArea) {
+        entity.policyArea = billDetails.policyArea;
+    }
+
+    if (billDetails.relatedBills) {
+        entity.relatedBills = billDetails.relatedBills;
+    }
+
+    if (billDetails.sponsors && billDetails.sponsors.length > 0) {
+        entity.sponsors = billDetails.sponsors;
+    }
+
+    if (billDetails.subjects) {
+        entity.subjects = billDetails.subjects;
+    }
+
+    if (billDetails.summaries) {
+        entity.summaries = billDetails.summaries;
+    }
+
+    if (billDetails.textVersions) {
+        entity.textVersions = billDetails.textVersions;
+    }
+
+    if (billDetails.titles) {
+        entity.titles = billDetails.titles;
+    }
+
+    // Handle arrays of entities
+    if (billDetails.committeeReports && billDetails.committeeReports.length > 0) {
+        entity.committeeReports = billDetails.committeeReports.map((report: any) => plainToClass(CommitteeReport, report));
+    }
+
+    if (billDetails.cboCostEstimates && billDetails.cboCostEstimates.length > 0) {
+        entity.cboCostEstimates = billDetails.cboCostEstimates.map((estimate: any) => plainToClass(CBOCostEstimateEntity, estimate));
+    }
+
+    return entity;
+}
 
 const fetchBillData = async (billRepository: Repository<BillDto>, queryParams: string) => {
     const { API_DATA_GOV } = process.env;
@@ -36,10 +116,17 @@ const fetchBillData = async (billRepository: Repository<BillDto>, queryParams: s
         searchQuery: queryParams,
     }))
 
+    // Feature flag to control validation - can be disabled for debugging
+    const BILL_VALIDATION_ENABLED = process.env.BILL_VALIDATION_ENABLED !== 'false';
+
     const validationPromises = decoratedBills.map(async (bill: BillDto) => {
-        const errors = await validate(bill);
-        if (errors.length > 0) {
-            throw new Error(`Validation failed for bill with searchQuery ${bill.searchQuery}: ${JSON.stringify(errors)}`);
+        if (BILL_VALIDATION_ENABLED) {
+            const errors = await validate(bill);
+            if (errors.length > 0) {
+                throw new Error(`Validation failed for bill with searchQuery ${bill.searchQuery}: ${JSON.stringify(errors)}`);
+            }
+        } else {
+            console.log(`Validation disabled for bill with searchQuery ${bill.searchQuery} via BILL_VALIDATION_ENABLED=false`);
         }
     });
 
@@ -97,7 +184,11 @@ export const fetchBillDetails = async (billRepository: Repository<BillDetailsEnt
             congress: parseInt(congress),
             type: billType,
             number: billNumber
-        }
+        },
+        relations: [
+            'cboCostEstimates',
+            'committeeReports'
+        ]
     });
 
     if (existingData) {
@@ -116,21 +207,26 @@ export const fetchBillDetails = async (billRepository: Repository<BillDetailsEnt
     const billDetails = response.data.bill;
     console.log(`Received bill details from API for: ${billKey}`);
 
-    const decoratedBillDetails = plainToClass(BillDetailsEntity, {
-        ...billDetails,
-        // Don't set id manually - let TypeORM auto-generate it
-    });
+    const transformedBillDetails = await transformBillDetailsToEntity(billDetails);
+    const validatedEntity = plainToClass(BillDetailsEntity, transformedBillDetails);
 
     console.log(`Validating and saving bill details for: ${billKey}`);
 
-    const errors = await validate(decoratedBillDetails);
-    if (errors.length > 0) {
-        console.error(`Validation errors for bill ${billKey}:`, errors);
-        throw new Error(`Validation failed for bill ${billKey}: ${JSON.stringify(errors)}`);
+    // Feature flag to control validation - can be disabled for debugging
+    const BILL_VALIDATION_ENABLED = process.env.BILL_VALIDATION_ENABLED !== 'false';
+
+    if (BILL_VALIDATION_ENABLED) {
+        const errors = await validate(validatedEntity);
+        if (errors.length > 0) {
+            console.error(`Validation errors for bill ${billKey}:`, errors);
+            throw new Error(`Validation failed for bill ${billKey}: ${JSON.stringify(errors)}`);
+        }
+    } else {
+        console.log(`Validation disabled for bill ${billKey} via BILL_VALIDATION_ENABLED=false`);
     }
 
     try {
-        const savedBill = await billRepository.save(decoratedBillDetails);
+        const savedBill = await billRepository.save(validatedEntity);
         console.log(`Successfully saved bill details for: ${billKey}`);
         return savedBill;
     } catch (error) {

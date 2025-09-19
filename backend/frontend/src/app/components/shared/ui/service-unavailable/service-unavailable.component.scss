@@ -1,0 +1,37 @@
+.service-unavailable-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+
+  .service-unavailable-content {
+    max-width: 400px;
+
+    .service-unavailable-icon {
+      font-size: 4rem;
+      width: 4rem;
+      height: 4rem;
+      color: #f44336;
+      margin-bottom: 1rem;
+    }
+
+    .service-unavailable-title {
+      font-size: 1.5rem;
+      font-weight: 500;
+      color: #424242;
+      margin: 0 0 0.5rem 0;
+    }
+
+    .service-unavailable-subtitle {
+      font-size: 1rem;
+      color: #757575;
+      margin: 0 0 1.5rem 0;
+      line-height: 1.5;
+    }
+
+    button {
+      margin-top: 1rem;
+    }
+  }
+}

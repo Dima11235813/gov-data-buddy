@@ -40,11 +40,18 @@ const fetchCommitteeData = async (committeeRepository: Repository<CommitteeEntit
         })
     );
 
+    // Feature flag to control validation - can be disabled for debugging
+    const VALIDATION_ENABLED = process.env.VALIDATION_ENABLED !== 'false';
+
     const validationPromises = decoratedCommittees.map(async (committee: CommitteeEntity) => {
-        const errors = await validate(committee);
-        if (errors.length > 0) {
-            console.error(`Validation failed for committee ${committee.systemCode}:`, errors);
-            throw new Error(`Validation failed for committee ${committee.systemCode}: ${JSON.stringify(errors)}`);
+        if (VALIDATION_ENABLED) {
+            const errors = await validate(committee);
+            if (errors.length > 0) {
+                console.error(`Validation failed for committee ${committee.systemCode}:`, errors);
+                throw new Error(`Validation failed for committee ${committee.systemCode}: ${JSON.stringify(errors)}`);
+            }
+        } else {
+            console.log(`Validation disabled for committee ${committee.systemCode} via VALIDATION_ENABLED=false`);
         }
     });
 
@@ -211,10 +218,17 @@ export const fetchCommitteeDetails = async (
 
     console.log(`Validating and saving committee details for: ${cacheKey}`);
 
-    const errors = await validate(decoratedCommittee);
-    if (errors.length > 0) {
-        console.error(`Validation errors for committee ${cacheKey}:`, errors);
-        throw new Error(`Validation failed for committee ${cacheKey}: ${JSON.stringify(errors)}`);
+    // Feature flag to control validation - can be disabled for debugging
+    const VALIDATION_ENABLED = process.env.VALIDATION_ENABLED !== 'false';
+
+    if (VALIDATION_ENABLED) {
+        const errors = await validate(decoratedCommittee);
+        if (errors.length > 0) {
+            console.error(`Validation errors for committee ${cacheKey}:`, errors);
+            throw new Error(`Validation failed for committee ${cacheKey}: ${JSON.stringify(errors)}`);
+        }
+    } else {
+        console.log(`Validation disabled for committee ${cacheKey} via VALIDATION_ENABLED=false`);
     }
 
     try {

@@ -2,16 +2,8 @@ import {
     Entity,
     PrimaryGeneratedColumn,
     Column,
-    OneToOne,
-    JoinColumn,
     OneToMany,
 } from 'typeorm';
-import { ActionEntity } from './ActionEntity';
-import { PolicyAreaEntity } from './PolicyAreaEntity';
-import { SponsorEntity } from './SponsorEntity';
-import { RequestEntity } from './RequestEntity';
-import { CountAndUrlEntity } from './CountAndUrlEntity';
-import { LatestActionEntity } from './LatestActionEntity';
 import { CBOCostEstimateEntity } from './CboCostEstimateEntity';
 import { CommitteeReport } from './CommitteeReportEntity';
 
@@ -20,20 +12,20 @@ export class BillDetailsEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @OneToOne(() => ActionEntity)
-    @JoinColumn()
-    actions: ActionEntity;
+    @Column('simple-json', { nullable: true })
+    actions?: { count: number; url: string };
 
-    @OneToOne(() => CBOCostEstimateEntity, { nullable: true })
-    @JoinColumn()
-    cboCostEstimates: CBOCostEstimateEntity;
+    @Column('simple-json', { nullable: true })
+    amendments?: { count: number; url: string };
 
-    @OneToMany(() => CommitteeReport, committeeReport => committeeReport.billDetails,  { nullable: true })
-    committeeReports: CommitteeReport[];
+    @OneToMany(() => CBOCostEstimateEntity, cboCostEstimate => cboCostEstimate.billDetails, { cascade: true, nullable: true })
+    cboCostEstimates?: CBOCostEstimateEntity[];
 
-    @OneToOne(() => CountAndUrlEntity)
-    @JoinColumn()
-    committees: CountAndUrlEntity;
+    @OneToMany(() => CommitteeReport, committeeReport => committeeReport.billDetails, { cascade: true, nullable: true })
+    committeeReports?: CommitteeReport[];
+
+    @Column('simple-json', { nullable: true })
+    committees?: { count: number; url: string };
 
     @Column()
     congress: number;
@@ -41,9 +33,8 @@ export class BillDetailsEntity {
     @Column()
     introducedDate: string;
 
-    @OneToOne(() => ActionEntity)
-    @JoinColumn()
-    latestAction: LatestActionEntity;
+    @Column('simple-json')
+    latestAction: { actionDate: string; text: string };
 
     @Column()
     number: string;
@@ -51,16 +42,23 @@ export class BillDetailsEntity {
     @Column()
     originChamber: string;
 
-    @OneToOne(() => CountAndUrlEntity)
-    @JoinColumn()
-    cosponsors: SponsorEntity;
+    @Column({ nullable: true })
+    originChamberCode?: string;
+
+    @Column('simple-json', { nullable: true })
+    laws?: any[];
+
+    @Column()
+    legislationUrl: string;
+
+    @Column('simple-json', { nullable: true })
+    cosponsors?: { count: number; url: string };
 
     @Column()
     title: string;
 
-    @OneToOne(() => CountAndUrlEntity)
-    @JoinColumn()
-    titles: CountAndUrlEntity;
+    @Column('simple-json')
+    titles: { count: number; url: string };
 
     @Column()
     type: string;
@@ -71,31 +69,33 @@ export class BillDetailsEntity {
     @Column()
     updateDateIncludingText: string;
 
-    @OneToOne(() => PolicyAreaEntity, { nullable: true })
-    @JoinColumn()
-    policyArea: PolicyAreaEntity;
+    @Column('simple-json', { nullable: true })
+    policyArea?: { name: string };
 
-    @OneToOne(() => CountAndUrlEntity, { nullable: true })
-    @JoinColumn()
-    relatedBills: CountAndUrlEntity;
+    @Column('simple-json', { nullable: true })
+    relatedBills?: { count: number; url: string };
 
-    @OneToMany(() => SponsorEntity, sponsor => sponsor.id, { nullable: true })
-    sponsors: SponsorEntity[];
+    @Column('simple-json', { nullable: true })
+    sponsors?: Array<{
+        bioguideId: string;
+        district: number;
+        firstName: string;
+        fullName: string;
+        isByRequest: string;
+        lastName: string;
+        middleName?: string;
+        party: string;
+        state: string;
+        url: string;
+    }>;
 
-    @OneToOne(() => CountAndUrlEntity, { nullable: true })
-    @JoinColumn()
-    subjects: CountAndUrlEntity;
+    @Column('simple-json', { nullable: true })
+    subjects?: { count: number; url: string };
 
-    @OneToOne(() => CountAndUrlEntity, { nullable: true })
-    @JoinColumn()
-    textVersions: CountAndUrlEntity;
+    @Column('simple-json', { nullable: true })
+    summaries?: { count: number; url: string };
 
+    @Column('simple-json', { nullable: true })
+    textVersions?: { count: number; url: string };
 
-
-
-
-
-    @OneToOne(() => RequestEntity)
-    @JoinColumn()
-    request: RequestEntity;
 }

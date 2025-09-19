@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { BillsService } from '../../../service/bills.service';
-import { BillDetailDto } from '../../../../../../shared/BillDetail.model';
+import { BillDetailDto, BillDetailPropEnum } from '@shared/BillDetail.model';
 
 @Component({
   selector: 'app-bill-details',

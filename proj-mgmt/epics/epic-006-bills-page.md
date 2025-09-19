@@ -47,6 +47,7 @@ Implement a comprehensive Bills page that displays congressional bill informatio
 - [Feature 006-001: Bills List Page](./../features/feature-006-001-bills-list-page.md)
 - [Feature 006-002: Bill Detail Page](./../features/feature-006-002-bill-detail-page.md)
 - [Feature 006-003: Bills Search & Filter](./../features/feature-006-003-bills-search-filter.md)
+- [Feature 006-004: Entity Linking in Bills](./../features/feature-006-004-entity-linking-in-bills.md)
  
 ## User Stories
 - [Story 006-001: Bills List UI with Search and Status Filter](./../stories/story-006-001-bills-list-ui.md)

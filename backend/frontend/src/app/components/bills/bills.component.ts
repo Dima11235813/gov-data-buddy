@@ -12,6 +12,7 @@ import { BillsService } from 'src/app/service/bills.service';
 export class BillsComponent implements OnInit, OnDestroy {
   bills: any[] = [];
   loading: boolean = true;
+  error: boolean = false;
   searchQuery: string = '';
   statusFilter: BillStatusFilter = 'All';
   filteredBills: any[] = [];
@@ -41,20 +42,7 @@ export class BillsComponent implements OnInit, OnDestroy {
       this.updateQueryParams({ q: value || null });
     });
 
-    this.loading = true;
-    this.billsService.getBills().subscribe({
-      next: (data) => {
-        this.bills = data || [];
-        this.applyFilters();
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error loading bills:', error);
-        this.bills = [];
-        this.applyFilters();
-        this.loading = false;
-      }
-    });
+    this.loadBills();
   }
 
   onSearchChange(value: string): void {
@@ -91,6 +79,30 @@ export class BillsComponent implements OnInit, OnDestroy {
     };
 
     this.filteredBills = (this.bills || []).filter(b => matchesSearch(b) && matchesStatus(b));
+  }
+
+  onRetry(): void {
+    this.loadBills();
+  }
+
+  private loadBills(): void {
+    this.loading = true;
+    this.error = false;
+    this.billsService.getBills().subscribe({
+      next: (data) => {
+        this.bills = data || [];
+        this.applyFilters();
+        this.loading = false;
+        this.error = false;
+      },
+      error: (error) => {
+        console.error('Error loading bills:', error);
+        this.bills = [];
+        this.applyFilters();
+        this.loading = false;
+        this.error = true;
+      }
+    });
   }
 
   private updateQueryParams(params: { q?: string | null; status?: string | null }): void {

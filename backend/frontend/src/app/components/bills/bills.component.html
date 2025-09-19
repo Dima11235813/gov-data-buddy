@@ -2,7 +2,7 @@
   <mat-card>
 
     <mat-card-content>
-      <div class="toolbar" *ngIf="!loading">
+      <div class="toolbar" *ngIf="!loading && !error && bills.length > 0">
         <div class="search">
           <app-search-input placeholder="Search bills by title or number..." [value]="searchQuery" (valueChange)="onSearchChange($event)"></app-search-input>
         </div>
@@ -16,13 +16,30 @@
         <p>Loading bills...</p>
       </div>
 
-      <div class="bills-list" *ngIf="!loading && filteredBills.length > 0">
+      <div class="bills-list" *ngIf="!loading && !error && filteredBills.length > 0">
         <app-bill-card *ngFor="let bill of filteredBills" [bill]="bill"></app-bill-card>
       </div>
 
-      <div class="no-bills" *ngIf="!loading && filteredBills.length === 0">
-        <p>No bills available at this time.</p>
-      </div>
+      <app-no-data
+        *ngIf="!loading && !error && bills.length === 0"
+        message="No Bills Available"
+        subtitle="There are currently no bills to display. Check back later for updates."
+        icon="inbox">
+      </app-no-data>
+
+      <app-no-data
+        *ngIf="!loading && !error && bills.length > 0 && filteredBills.length === 0"
+        message="No Bills Match Your Search"
+        subtitle="Try adjusting your search terms or filters to find what you're looking for."
+        icon="search_off">
+      </app-no-data>
+
+      <app-service-unavailable
+        *ngIf="!loading && error"
+        message="Unable to Load Bills"
+        subtitle="We're having trouble connecting to the server. Please check your connection and try again."
+        (retryClicked)="onRetry()">
+      </app-service-unavailable>
     </mat-card-content>
   </mat-card>
 </div>

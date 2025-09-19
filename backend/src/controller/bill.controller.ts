@@ -4,8 +4,47 @@ import { fetchBillDetails, getBills } from "../api/bill.api";
 import { AppDataSource } from "../datasource/sqlite-datasource";
 import { BillEntity } from "../entity/BillEntity";
 import { BillDetailsEntity } from '../entity/BillDetailsEntity';
+import { BillDetailDto } from '../../shared/BillDetail.model';
 
 export namespace BillsController {
+    // Helper function to transform BillDetailsEntity to BillDetailDto
+    const transformEntityToDto = (entity: BillDetailsEntity): BillDetailDto => {
+        return {
+            actions: entity.actions || { count: 0, url: '' },
+            amendments: entity.amendments,
+            cboCostEstimates: entity.cboCostEstimates?.map(estimate => ({
+                description: estimate.description,
+                pubDate: estimate.pubDate.toISOString(),
+                title: estimate.title,
+                url: estimate.url
+            })),
+            committeeReports: entity.committeeReports?.map(report => ({
+                citation: report.citation,
+                url: report.url
+            })),
+            committees: entity.committees || { count: 0, url: '' },
+            congress: entity.congress,
+            cosponsors: entity.cosponsors,
+            introducedDate: entity.introducedDate,
+            latestAction: entity.latestAction,
+            laws: entity.laws,
+            number: entity.number,
+            originChamber: entity.originChamber,
+            originChamberCode: entity.originChamberCode,
+            policyArea: entity.policyArea,
+            relatedBills: entity.relatedBills,
+            sponsors: entity.sponsors || [],
+            subjects: entity.subjects,
+            summaries: entity.summaries,
+            textVersions: entity.textVersions,
+            title: entity.title,
+            titles: entity.titles,
+            type: entity.type,
+            updateDate: entity.updateDate,
+            updateDateIncludingText: entity.updateDateIncludingText
+        };
+    };
+
     const getBillRepository = () => {
         if (typeof jest !== 'undefined') {
             return {
@@ -162,7 +201,16 @@ export namespace BillsController {
         try {
             console.log(`Fetching bill details for ${congress}/${billType}/${billNumber}`);
             const data = await fetchBillDetails(billDetailRepository, { congress, billType, billNumber });
-            res.json(data);
+
+            // Check if this is a full BillDetailsEntity or mock data
+            if (data && typeof data === 'object' && 'latestAction' in data && 'titles' in data) {
+                // This is a full entity, transform it
+                const dto = transformEntityToDto(data as BillDetailsEntity);
+                res.json(dto);
+            } else {
+                // This might be mock data or partial data, return as-is for now
+                res.json(data);
+            }
         } catch (error) {
             console.error('Error in getBillDetails:', error);
             res.status(500).json({ message: 'An error occurred while fetching bill details.' });

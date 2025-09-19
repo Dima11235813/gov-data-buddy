@@ -3,7 +3,9 @@ import {
     Column,
     PrimaryGeneratedColumn,
     CreateDateColumn,
+    ManyToOne,
 } from 'typeorm';
+import { BillDetailsEntity } from './BillDetailsEntity';
 
 @Entity()
 export class CBOCostEstimateEntity {
@@ -21,4 +23,7 @@ export class CBOCostEstimateEntity {
 
     @Column({ type: 'text' })
     url: string;
+
+    @ManyToOne(() => BillDetailsEntity, billDetails => billDetails.cboCostEstimates, { nullable: true })
+    billDetails?: BillDetailsEntity;
 }

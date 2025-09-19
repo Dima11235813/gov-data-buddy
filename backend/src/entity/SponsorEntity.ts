@@ -24,8 +24,11 @@ export class SponsorEntity {
     @Column()
     isByRequest: string;
 
-    @Column()
+    @Column({ nullable: true })
     lastName: string;
+
+    @Column({ nullable: true })
+    middleName?: string;
 
     @Column()
     party: string;

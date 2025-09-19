@@ -1,6 +1,6 @@
 // entities/LatestAction.ts
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsOptional } from 'class-validator';
 
 @Entity()
 export class LatestActionEntity {
@@ -10,6 +10,10 @@ export class LatestActionEntity {
   @Column()
   @IsNotEmpty()
   actionDate: string;
+
+  @Column({ nullable: true })
+  @IsOptional()
+  actionTime?: string;
 
   @Column()
   @IsNotEmpty()
