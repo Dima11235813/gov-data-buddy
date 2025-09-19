@@ -1,19 +1,97 @@
 import { Request, Response } from 'express';
-import { getMembers, fetchMemberDetailsFromAPI } from "../api/member.api";
+import {
+    getMembers,
+    fetchMemberDetailsFromAPI,
+    fetchMembersByCongress,
+    fetchMembersByState,
+    fetchMembersByStateDistrict,
+    fetchMembersByCongressStateDistrict,
+    fetchMemberSponsoredLegislation,
+    fetchMemberCosponsoredLegislation
+} from "../api/member.api";
+import {
+    getCurrentMemberPicture,
+    getMemberPictureById,
+    getMemberPictureData,
+    downloadAndStoreMemberPicture
+} from "../api/member-picture.api";
 import { AppDataSource } from "../datasource/sqlite-datasource";
 import { Member } from "../entity/MemberEntity";
+import { MemberPicture } from "../entity/MemberPictureEntity";
+
+// Runtime cache for member data to avoid repeated database queries
+const memberCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
 
 export namespace MembersController {
     const memberRepository = AppDataSource.manager.getRepository(Member);
 
+    // Helper function to get member data with runtime caching
+    const getCachedMemberData = async (bioguideId: string): Promise<any | null> => {
+        // Check runtime cache first
+        const cached = memberCache.get(bioguideId);
+        if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
+            console.log(`Returning runtime cached member: ${bioguideId}`);
+            return cached.data;
+        }
+
+        // Check database cache
+        let cachedMember: Member | null = null;
+        try {
+            cachedMember = await memberRepository.findOneBy({ bioguideId });
+        } catch (dbError) {
+            console.warn('Database query failed, falling back to API:', dbError);
+        }
+
+        if (cachedMember) {
+            console.log(`Returning database cached member: ${bioguideId}`);
+
+            // Create response object with member data
+            let responseData: any = { ...cachedMember };
+
+            // Attach current picture data if available
+            try {
+                const pictureRepository = memberRepository.manager.getRepository(MemberPicture);
+                const currentPicture = await getCurrentMemberPicture(bioguideId, pictureRepository);
+                if (currentPicture) {
+                    const pictureData = getMemberPictureData(currentPicture);
+                    if (pictureData) {
+                        responseData.currentPicture = {
+                            id: currentPicture.id,
+                            base64Data: pictureData.base64Data,
+                            contentType: pictureData.contentType,
+                            version: currentPicture.version,
+                            isCurrentVersion: currentPicture.isCurrentVersion,
+                            attribution: currentPicture.attribution
+                        };
+                    }
+                }
+            } catch (pictureError) {
+                console.warn(`Failed to attach picture data for ${bioguideId}:`, pictureError);
+            }
+
+            // Store in runtime cache
+            memberCache.set(bioguideId, { data: responseData, timestamp: Date.now() });
+
+            return responseData;
+        }
+
+        return null;
+    };
+
     export const getMembersByQuery = async (req: Request, res: Response) => {
         console.log(`getMembersByQuery`)
-        const { format = 'json', offset = 0, limit = 250, fromDateTime, toDateTime } = req.query;
+        const { format = 'json', offset = 0, limit = 12, fromDateTime, toDateTime } = req.query;
         console.log(`Query:`)
         console.log(req.query)
+
+        // Parse pagination parameters
+        const page = Math.floor(parseInt(offset as string) / parseInt(limit as string)) + 1;
+        const take = parseInt(limit as string);
+        const skip = parseInt(offset as string);
+
         let cachedMembers: Member[] = []
         try {
-
             cachedMembers = await memberRepository.findBy({ searchQuery: `${req.query}` });
             console.log(`cachedMembers: ${cachedMembers.length}`)
         } catch (e) {
@@ -22,10 +100,58 @@ export namespace MembersController {
         }
 
         if (cachedMembers.length > 0) {
-            res.json({ members: cachedMembers });
+            // Apply pagination to cached results
+            const paginatedMembers = cachedMembers.slice(skip, skip + take);
+
+            // Attach current picture data for each member
+            const pictureRepository = memberRepository.manager.getRepository(MemberPicture);
+            const membersWithPictures = await Promise.all(
+                paginatedMembers.map(async (member) => {
+                    try {
+                        const currentPicture = await pictureRepository.findOne({
+                            where: { bioguideId: member.bioguideId },
+                            order: { createdAt: 'DESC' }
+                        });
+                        if (currentPicture) {
+                            const pictureData = getMemberPictureData(currentPicture);
+                            if (pictureData) {
+                                return {
+                                    ...member,
+                                    currentPicture: {
+                                        id: currentPicture.id,
+                                        base64Data: pictureData.base64Data,
+                                        contentType: pictureData.contentType,
+                                        version: currentPicture.version,
+                                        isCurrentVersion: currentPicture.isCurrentVersion,
+                                        attribution: currentPicture.attribution
+                                    }
+                                };
+                            }
+                        }
+                        return member;
+                    } catch (pictureError) {
+                        console.warn(`Failed to attach picture data for ${member.bioguideId}:`, pictureError);
+                        return member;
+                    }
+                })
+            );
+
+            // Get total count for pagination metadata
+            const total = cachedMembers.length;
+            const totalPages = Math.ceil(total / take);
+
+            res.json({
+                members: membersWithPictures,
+                pagination: {
+                    page,
+                    limit: take,
+                    total,
+                    totalPages
+                }
+            });
             return;
         } else {
-            // TODO Test the get members by query feature - set up strong type for membersQueryParams
+            // Fetch from API and handle pagination there
             getMembers(req, res, memberRepository, { format, offset, limit, fromDateTime, toDateTime } as any);
         }
     }
@@ -34,22 +160,21 @@ export namespace MembersController {
         const { bioguideId } = req.params;
 
         try {
-            // Try to get from database first (cache)
-            let cachedMember: Member | null = null;
-            try {
-                cachedMember = await memberRepository.findOneBy({ bioguideId });
-            } catch (dbError) {
-                console.warn('Database query failed, falling back to API:', dbError);
-            }
-
-            if (cachedMember) {
-                console.log(`Returning cached member: ${bioguideId}`);
-                res.json({ member: cachedMember });
+            // Try to get from runtime cache first, then database cache
+            const cachedData = await getCachedMemberData(bioguideId);
+            if (cachedData) {
+                res.json({ member: cachedData });
                 return;
             }
 
             // If not in cache, fetch from API
             const data = await fetchMemberDetailsFromAPI(bioguideId, memberRepository);
+
+            // Store the fresh data in runtime cache
+            if (data.member) {
+                memberCache.set(bioguideId, { data: data.member, timestamp: Date.now() });
+            }
+
             res.json(data);
 
         } catch (error) {
@@ -60,6 +185,438 @@ export namespace MembersController {
             let message = 'An error occurred while fetching member data.';
 
             if (errorMessage.includes('not found')) {
+                statusCode = 404;
+                message = errorMessage;
+            } else if (errorMessage.includes('rate limit')) {
+                statusCode = 429;
+                message = errorMessage;
+            }
+
+            res.status(statusCode).json({
+                message,
+                error: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+            });
+        }
+    }
+
+    export const getMembersByCongress = async (req: Request, res: Response) => {
+        const { congress } = req.params;
+
+        try {
+            const congressNum = parseInt(congress);
+            if (isNaN(congressNum)) {
+                return res.status(400).json({
+                    message: 'Invalid congress number. Must be a valid integer.'
+                });
+            }
+
+            // Try to get from database first (cache)
+            let cachedMembers: Member[] = [];
+            try {
+                cachedMembers = await memberRepository.findBy({ searchQuery: `congress=${congressNum}` });
+            } catch (dbError) {
+                console.warn('Database query failed, falling back to API:', dbError);
+            }
+
+            if (cachedMembers.length > 0) {
+                console.log(`Returning ${cachedMembers.length} cached members for congress ${congressNum}`);
+                return res.json({ members: cachedMembers });
+            }
+
+            // If not in cache, fetch from API
+            const data = await fetchMembersByCongress(congressNum, memberRepository);
+            res.json(data);
+
+        } catch (error) {
+            console.error(`Error fetching members for congress ${congress}:`, error);
+
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            let statusCode = 500;
+            let message = 'An error occurred while fetching members.';
+
+            if (errorMessage.includes('not found') || errorMessage.includes('No members found')) {
+                statusCode = 404;
+                message = errorMessage;
+            } else if (errorMessage.includes('rate limit')) {
+                statusCode = 429;
+                message = errorMessage;
+            } else if (errorMessage.includes('Invalid parameters')) {
+                statusCode = 400;
+                message = errorMessage;
+            }
+
+            res.status(statusCode).json({
+                message,
+                error: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+            });
+        }
+    }
+
+    export const getMembersByState = async (req: Request, res: Response) => {
+        const { stateCode } = req.params;
+
+        try {
+            // Validate state code format (should be 2 characters)
+            if (!stateCode || stateCode.length !== 2) {
+                return res.status(400).json({
+                    message: 'Invalid state code. Must be a 2-character state abbreviation.'
+                });
+            }
+
+            // Try to get from database first (cache)
+            let cachedMembers: Member[] = [];
+            try {
+                cachedMembers = await memberRepository.findBy({ searchQuery: `state=${stateCode}` });
+            } catch (dbError) {
+                console.warn('Database query failed, falling back to API:', dbError);
+            }
+
+            if (cachedMembers.length > 0) {
+                console.log(`Returning ${cachedMembers.length} cached members for state ${stateCode}`);
+                return res.json({ members: cachedMembers });
+            }
+
+            // If not in cache, fetch from API
+            const data = await fetchMembersByState(stateCode, memberRepository);
+            res.json(data);
+
+        } catch (error) {
+            console.error(`Error fetching members for state ${stateCode}:`, error);
+
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            let statusCode = 500;
+            let message = 'An error occurred while fetching members.';
+
+            if (errorMessage.includes('not found') || errorMessage.includes('No members found')) {
+                statusCode = 404;
+                message = errorMessage;
+            } else if (errorMessage.includes('rate limit')) {
+                statusCode = 429;
+                message = errorMessage;
+            } else if (errorMessage.includes('Invalid parameters')) {
+                statusCode = 400;
+                message = errorMessage;
+            }
+
+            res.status(statusCode).json({
+                message,
+                error: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+            });
+        }
+    }
+
+    export const getMembersByStateDistrict = async (req: Request, res: Response) => {
+        const { stateCode, district } = req.params;
+
+        try {
+            // Validate state code format
+            if (!stateCode || stateCode.length !== 2) {
+                return res.status(400).json({
+                    message: 'Invalid state code. Must be a 2-character state abbreviation.'
+                });
+            }
+
+            // Validate district number
+            const districtNum = parseInt(district);
+            if (isNaN(districtNum) || districtNum < 1) {
+                return res.status(400).json({
+                    message: 'Invalid district number. Must be a positive integer.'
+                });
+            }
+
+            // Try to get from database first (cache)
+            let cachedMembers: Member[] = [];
+            try {
+                cachedMembers = await memberRepository.findBy({ searchQuery: `state=${stateCode}&district=${districtNum}` });
+            } catch (dbError) {
+                console.warn('Database query failed, falling back to API:', dbError);
+            }
+
+            if (cachedMembers.length > 0) {
+                console.log(`Returning ${cachedMembers.length} cached members for state ${stateCode}, district ${districtNum}`);
+                return res.json({ members: cachedMembers });
+            }
+
+            // If not in cache, fetch from API
+            const data = await fetchMembersByStateDistrict(stateCode, districtNum, memberRepository);
+            res.json(data);
+
+        } catch (error) {
+            console.error(`Error fetching members for state ${stateCode}, district ${district}:`, error);
+
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            let statusCode = 500;
+            let message = 'An error occurred while fetching members.';
+
+            if (errorMessage.includes('not found') || errorMessage.includes('No members found')) {
+                statusCode = 404;
+                message = errorMessage;
+            } else if (errorMessage.includes('rate limit')) {
+                statusCode = 429;
+                message = errorMessage;
+            } else if (errorMessage.includes('Invalid parameters')) {
+                statusCode = 400;
+                message = errorMessage;
+            }
+
+            res.status(statusCode).json({
+                message,
+                error: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+            });
+        }
+    }
+
+    export const getMembersByCongressStateDistrict = async (req: Request, res: Response) => {
+        const { congress, stateCode, district } = req.params;
+
+        try {
+            // Validate congress number
+            const congressNum = parseInt(congress);
+            if (isNaN(congressNum)) {
+                return res.status(400).json({
+                    message: 'Invalid congress number. Must be a valid integer.'
+                });
+            }
+
+            // Validate state code format
+            if (!stateCode || stateCode.length !== 2) {
+                return res.status(400).json({
+                    message: 'Invalid state code. Must be a 2-character state abbreviation.'
+                });
+            }
+
+            // Validate district number
+            const districtNum = parseInt(district);
+            if (isNaN(districtNum) || districtNum < 1) {
+                return res.status(400).json({
+                    message: 'Invalid district number. Must be a positive integer.'
+                });
+            }
+
+            // Try to get from database first (cache)
+            let cachedMembers: Member[] = [];
+            try {
+                cachedMembers = await memberRepository.findBy({
+                    searchQuery: `congress=${congressNum}&state=${stateCode}&district=${districtNum}`
+                });
+            } catch (dbError) {
+                console.warn('Database query failed, falling back to API:', dbError);
+            }
+
+            if (cachedMembers.length > 0) {
+                console.log(`Returning ${cachedMembers.length} cached members for congress ${congressNum}, state ${stateCode}, district ${districtNum}`);
+                return res.json({ members: cachedMembers });
+            }
+
+            // If not in cache, fetch from API
+            const data = await fetchMembersByCongressStateDistrict(congressNum, stateCode, districtNum, memberRepository);
+            res.json(data);
+
+        } catch (error) {
+            console.error(`Error fetching members for congress ${congress}, state ${stateCode}, district ${district}:`, error);
+
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            let statusCode = 500;
+            let message = 'An error occurred while fetching members.';
+
+            if (errorMessage.includes('not found') || errorMessage.includes('No members found')) {
+                statusCode = 404;
+                message = errorMessage;
+            } else if (errorMessage.includes('rate limit')) {
+                statusCode = 429;
+                message = errorMessage;
+            } else if (errorMessage.includes('Invalid parameters')) {
+                statusCode = 400;
+                message = errorMessage;
+            }
+
+            res.status(statusCode).json({
+                message,
+                error: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+            });
+        }
+    }
+
+    export const getMemberPicture = async (req: Request, res: Response) => {
+        const { bioguideId, pictureId } = req.params;
+
+        try {
+            const pictureRepository = AppDataSource.manager.getRepository(MemberPicture);
+            let picture: MemberPicture | null = null;
+
+            if (pictureId) {
+                // Get specific picture by ID
+                const id = parseInt(pictureId);
+                if (isNaN(id)) {
+                    return res.status(400).json({ message: 'Invalid picture ID' });
+                }
+                picture = await getMemberPictureById(id, pictureRepository);
+            } else {
+                // Get current picture for member
+                picture = await getCurrentMemberPicture(bioguideId, pictureRepository);
+            }
+
+            if (!picture) {
+                return res.status(404).json({ message: 'Picture not found' });
+            }
+
+            // Verify the picture belongs to the requested member
+            if (picture.bioguideId !== bioguideId) {
+                return res.status(403).json({ message: 'Picture does not belong to this member' });
+            }
+
+            const pictureData = getMemberPictureData(picture);
+            if (!pictureData) {
+                return res.status(404).json({ message: 'Picture data not found' });
+            }
+
+            // Return the base64 data directly as JSON
+            res.json({
+                id: picture.id,
+                bioguideId: picture.bioguideId,
+                base64Data: pictureData.base64Data,
+                contentType: pictureData.contentType,
+                version: picture.version,
+                attribution: picture.attribution,
+                createdAt: picture.createdAt
+            });
+
+        } catch (error) {
+            console.error('Error serving member picture:', error);
+            res.status(500).json({ message: 'Internal server error' });
+        }
+    }
+
+    export const refreshMemberPicture = async (req: Request, res: Response) => {
+        const { bioguideId } = req.params;
+
+        try {
+            // Get member details to find the current depiction URL
+            const memberRepository = AppDataSource.manager.getRepository(Member);
+            const pictureRepository = AppDataSource.manager.getRepository(MemberPicture);
+
+            let member = await memberRepository.findOneBy({ bioguideId });
+
+            if (!member) {
+                // Try to fetch from API
+                const data = await fetchMemberDetailsFromAPI(bioguideId, memberRepository);
+                member = data.member;
+            }
+
+            if (!member?.depiction?.imageUrl) {
+                return res.status(404).json({ message: 'No picture URL available for this member' });
+            }
+
+            // Download and store the new picture
+            const picture = await downloadAndStoreMemberPicture(
+                bioguideId,
+                member.depiction.imageUrl,
+                member.depiction.attribution || '',
+                memberRepository,
+                pictureRepository
+            );
+
+            if (!picture) {
+                return res.status(500).json({ message: 'Failed to download and store picture' });
+            }
+
+            res.json({
+                message: 'Picture refreshed successfully',
+                picture: {
+                    id: picture.id,
+                    version: picture.version,
+                    createdAt: picture.createdAt,
+                    url: `/api/member/${bioguideId}/picture/${picture.id}`
+                }
+            });
+
+        } catch (error) {
+            console.error('Error refreshing member picture:', error);
+            res.status(500).json({ message: 'Internal server error' });
+        }
+    }
+
+    export const getMemberPictureHistory = async (req: Request, res: Response) => {
+        const { bioguideId } = req.params;
+
+        try {
+            const pictureRepository = AppDataSource.manager.getRepository(MemberPicture);
+            const pictures = await pictureRepository.find({
+                where: { bioguideId },
+                order: { version: 'DESC', createdAt: 'DESC' },
+                select: ['id', 'version', 'createdAt', 'status', 'isCurrentVersion', 'fileSize']
+            });
+
+            res.json({
+                bioguideId,
+                pictures: pictures.map(pic => ({
+                    ...pic,
+                    url: `/api/member/${bioguideId}/picture/${pic.id}`
+                }))
+            });
+
+        } catch (error) {
+            console.error('Error fetching member picture history:', error);
+            res.status(500).json({ message: 'Internal server error' });
+        }
+    }
+
+    export const getMemberSponsoredLegislation = async (req: Request, res: Response) => {
+        const { bioguideId } = req.params;
+        const format = typeof req.query.format === 'string' ? req.query.format : 'json';
+        const offset = typeof req.query.offset === 'string' ? parseInt(req.query.offset) : 0;
+        const limit = typeof req.query.limit === 'string' ? parseInt(req.query.limit) : 20;
+
+        try {
+            const data = await fetchMemberSponsoredLegislation(bioguideId, {
+                format,
+                offset,
+                limit
+            });
+            res.json(data);
+        } catch (error) {
+            console.error(`Error fetching sponsored legislation for ${bioguideId}:`, error);
+
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            let statusCode = 500;
+            let message = 'An error occurred while fetching sponsored legislation.';
+
+            if (errorMessage.includes('not found') || errorMessage.includes('No sponsored legislation found')) {
+                statusCode = 404;
+                message = errorMessage;
+            } else if (errorMessage.includes('rate limit')) {
+                statusCode = 429;
+                message = errorMessage;
+            }
+
+            res.status(statusCode).json({
+                message,
+                error: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+            });
+        }
+    }
+
+    export const getMemberCosponsoredLegislation = async (req: Request, res: Response) => {
+        const { bioguideId } = req.params;
+        const format = typeof req.query.format === 'string' ? req.query.format : 'json';
+        const offset = typeof req.query.offset === 'string' ? parseInt(req.query.offset) : 0;
+        const limit = typeof req.query.limit === 'string' ? parseInt(req.query.limit) : 20;
+
+        try {
+            const data = await fetchMemberCosponsoredLegislation(bioguideId, {
+                format,
+                offset,
+                limit
+            });
+            res.json(data);
+        } catch (error) {
+            console.error(`Error fetching cosponsored legislation for ${bioguideId}:`, error);
+
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            let statusCode = 500;
+            let message = 'An error occurred while fetching cosponsored legislation.';
+
+            if (errorMessage.includes('not found') || errorMessage.includes('No cosponsored legislation found')) {
                 statusCode = 404;
                 message = errorMessage;
             } else if (errorMessage.includes('rate limit')) {

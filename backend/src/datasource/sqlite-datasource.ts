@@ -5,6 +5,7 @@ import { Member as MemberEntity } from "../entity/MemberEntity";
 import { Served as ServedEntity } from "../entity/ServedEntity";
 import { Depiction as DepictionEntity } from "../entity/DepictionEntity";
 import { Term as TermEntity } from "../entity/TermEntity";
+import { MemberPicture } from "../entity/MemberPictureEntity";
 import { CountAndUrlEntity } from "../entity/CountAndUrlEntity";
 import { ActionEntity } from "../entity/ActionEntity";
 import { BillDetailsEntity } from "../entity/BillDetailsEntity";
@@ -38,6 +39,7 @@ export const AppDataSource = new DataSource({
     ServedEntity,
     DepictionEntity,
     TermEntity,
+    MemberPicture,
     // COMMITTEE
     CommitteeEntity
   ],

@@ -9,6 +9,7 @@ import {
 import { Depiction } from './DepictionEntity';
 import { Served } from './ServedEntity';
 import { Term } from './TermEntity';
+import { MemberPicture } from './MemberPictureEntity';
 import { IsNotEmpty, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -16,7 +17,6 @@ import { Type } from 'class-transformer';
 export class Member {
     @PrimaryGeneratedColumn()
     id: number;
-
 
     @Column()
     @IsNotEmpty()
@@ -32,7 +32,7 @@ export class Member {
     depiction: Depiction;
 
     @Column({ nullable: true })
-    district: string
+    district: string;
 
     @Column()
     @IsNotEmpty()
@@ -55,6 +55,54 @@ export class Member {
 
     @Column({ type: 'text' })
     url: string;
+
+    // Additional fields from Congress.gov API
+    @Column({ nullable: true })
+    birthYear?: string;
+
+    @Column({ nullable: true })
+    directOrderName?: string;
+
+    @Column({ nullable: true })
+    firstName?: string;
+
+    @Column({ nullable: true })
+    honorificName?: string;
+
+    @Column({ nullable: true })
+    invertedOrderName?: string;
+
+    @Column({ nullable: true })
+    lastName?: string;
+
+    // JSON columns for complex objects
+    @Column({ type: 'json', nullable: true })
+    cosponsoredLegislation?: {
+        count: number;
+        url: string;
+    };
+
+    @Column({ type: 'json', nullable: true })
+    sponsoredLegislation?: {
+        count: number;
+        url: string;
+    };
+
+    @Column({ type: 'json', nullable: true })
+    leadership?: Array<{
+        congress: number;
+        type: string;
+    }>;
+
+    @Column({ type: 'json', nullable: true })
+    partyHistory?: Array<{
+        partyAbbreviation: string;
+        partyName: string;
+        startYear: number;
+    }>;
+
+    // Current profile picture relationship
+    currentPicture?: MemberPicture;
 
     // Optional normalized terms table for reliable validation and queries
     terms?: Term[];

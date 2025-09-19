@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { MembersService, MemberSearchParams } from '../../../service/members.service';
+import { MembersService, MemberSearchParams, MemberSearchResponse } from '../../../service/members.service';
 import { MemberDto } from '../../../../../../../backend/shared/Member.model';
 
 @Component({
@@ -45,13 +45,98 @@ import { MemberDto } from '../../../../../../../backend/shared/Member.model';
             <mat-option value="senate">Senate</mat-option>
           </mat-select>
         </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>From Date</mat-label>
+          <input matInput [matDatepicker]="fromPicker" formControlName="fromDateTime">
+          <mat-datepicker-toggle matIconSuffix [for]="fromPicker"></mat-datepicker-toggle>
+          <mat-datepicker #fromPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>To Date</mat-label>
+          <input matInput [matDatepicker]="toPicker" formControlName="toDateTime">
+          <mat-datepicker-toggle matIconSuffix [for]="toPicker"></mat-datepicker-toggle>
+          <mat-datepicker #toPicker></mat-datepicker>
+        </mat-form-field>
       </form>
 
-      <div class="members-grid" *ngIf="!loading && members.length > 0; else loadingTemplate">
+      <!-- Desktop Table View -->
+      <div class="table-container" *ngIf="!loading && members.length > 0; else loadingTemplate">
+        <table mat-table [dataSource]="members" class="members-table" matSort>
+
+          <!-- Photo Column -->
+          <ng-container matColumnDef="photo">
+            <th mat-header-cell *matHeaderCellDef>Photo</th>
+            <td mat-cell *matCellDef="let member">
+              <div class="member-avatar">
+                <img
+                  *ngIf="member.currentPicture?.base64Data; else personIcon"
+                  [src]="member.currentPicture!.base64Data"
+                  [alt]="member.name"
+                  class="member-thumbnail"
+                  (error)="onImageError($event)"
+                />
+                <ng-template #personIcon>
+                  <mat-icon>person</mat-icon>
+                </ng-template>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Name Column -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+            <td mat-cell *matCellDef="let member" [routerLink]="['/members', member.bioguideId]" class="clickable-cell">
+              {{ member.name }}
+            </td>
+          </ng-container>
+
+          <!-- Party Column -->
+          <ng-container matColumnDef="party">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Party</th>
+            <td mat-cell *matCellDef="let member" [routerLink]="['/members', member.bioguideId]" class="clickable-cell">
+              {{ member.party }}
+            </td>
+          </ng-container>
+
+          <!-- State Column -->
+          <ng-container matColumnDef="state">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>State</th>
+            <td mat-cell *matCellDef="let member" [routerLink]="['/members', member.bioguideId]" class="clickable-cell">
+              {{ member.state }}
+            </td>
+          </ng-container>
+
+          <!-- District/Chamber Column -->
+          <ng-container matColumnDef="district">
+            <th mat-header-cell *matHeaderCellDef>District</th>
+            <td mat-cell *matCellDef="let member" [routerLink]="['/members', member.bioguideId]" class="clickable-cell">
+              <span *ngIf="member.district">District {{ member.district }}</span>
+              <span *ngIf="!member.district">Senator</span>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      </div>
+
+      <!-- Mobile Card View -->
+      <div class="members-grid mobile-only" *ngIf="!loading && members.length > 0">
         <mat-card class="member-card" *ngFor="let member of members" [routerLink]="['/members', member.bioguideId]">
           <mat-card-header>
             <div mat-card-avatar class="member-avatar">
-              <mat-icon>person</mat-icon>
+              <img
+                *ngIf="member.currentPicture?.base64Data; else personIcon"
+                [src]="member.currentPicture!.base64Data"
+                [alt]="member.name"
+                class="member-thumbnail"
+                (error)="onImageError($event)"
+              />
+              <ng-template #personIcon>
+                <mat-icon>person</mat-icon>
+              </ng-template>
             </div>
             <mat-card-title>{{ member.name }}</mat-card-title>
             <mat-card-subtitle>{{ member.party }}-{{ member.state }}</mat-card-subtitle>
@@ -64,7 +149,32 @@ import { MemberDto } from '../../../../../../../backend/shared/Member.model';
       </div>
 
       <ng-template #loadingTemplate>
-        <div class="loading-container">
+        <!-- Table skeleton for desktop -->
+        <div class="table-skeleton" *ngIf="!loading">
+          <table class="members-table">
+            <thead>
+              <tr>
+                <th>Photo</th>
+                <th>Name</th>
+                <th>Party</th>
+                <th>State</th>
+                <th>District</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let s of [].constructor(12)">
+                <td><div class="skeleton-avatar"></div></td>
+                <td><div class="skeleton-line"></div></td>
+                <td><div class="skeleton-line short"></div></td>
+                <td><div class="skeleton-line short"></div></td>
+                <td><div class="skeleton-line"></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Card skeleton for mobile -->
+        <div class="loading-container mobile-only">
           <div class="skeleton-grid">
             <div class="skeleton-card" *ngFor="let s of [].constructor(12)">
               <div class="skeleton-avatar"></div>
@@ -95,7 +205,7 @@ import { MemberDto } from '../../../../../../../backend/shared/Member.model';
 
     .search-filters {
       display: grid;
-      grid-template-columns: 2fr 1fr 1fr 1fr;
+      grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
       gap: 16px;
       margin-bottom: 24px;
     }
@@ -104,12 +214,91 @@ import { MemberDto } from '../../../../../../../backend/shared/Member.model';
       grid-column: 1;
     }
 
+    /* Desktop Table Styles */
+    .table-container {
+      overflow-x: auto;
+      margin-bottom: 24px;
+      min-height: 50vh;
+    }
+
+    .members-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .member-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      overflow: hidden;
+      background-color: #3f51b5;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .member-thumbnail {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    .clickable-cell {
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .clickable-cell:hover {
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+
+    /* Hide table on mobile */
+    @media (max-width: 768px) {
+      .table-container,
+      .table-skeleton {
+        display: none;
+      }
+    }
+
+    /* Table skeleton styles */
+    .table-skeleton {
+      overflow-x: auto;
+      margin-bottom: 24px;
+    }
+
+    .table-skeleton table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .table-skeleton th,
+    .table-skeleton td {
+      padding: 16px;
+      text-align: left;
+    }
+
+    .table-skeleton th {
+      border-bottom: 1px solid #e0e0e0;
+      font-weight: 500;
+    }
+
+    /* Mobile Card Styles */
     .members-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 16px;
       margin-bottom: 24px;
       min-height: 50vh;
+    }
+
+    /* Hide cards on desktop */
+    @media (min-width: 769px) {
+      .members-grid,
+      .loading-container {
+        display: none;
+      }
     }
 
     .member-card {
@@ -119,11 +308,6 @@ import { MemberDto } from '../../../../../../../backend/shared/Member.model';
 
     .member-card:hover {
       transform: translateY(-4px);
-    }
-
-    .member-avatar {
-      background-color: #3f51b5;
-      color: white;
     }
 
     .loading-container {
@@ -180,6 +364,7 @@ export class MemberDirectoryComponent implements OnInit {
   pageSize = 12;
   private searchTimeout: any;
   pageIndex = 0;
+  displayedColumns: string[] = ['photo', 'name', 'party', 'state', 'district'];
 
   constructor(
     private fb: FormBuilder,
@@ -187,11 +372,17 @@ export class MemberDirectoryComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute
   ) {
+    // Set default date range to last year
+    const today = new Date();
+    const lastYear = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+
     this.searchForm = this.fb.group({
       search: [''],
       state: [''],
       party: [''],
-      chamber: ['']
+      chamber: [''],
+      fromDateTime: [lastYear.toISOString().split('T')[0]], // YYYY-MM-DD format
+      toDateTime: [today.toISOString().split('T')[0]]
     });
   }
 
@@ -202,7 +393,9 @@ export class MemberDirectoryComponent implements OnInit {
         search: params['search'] || '',
         state: params['state'] || '',
         party: params['party'] || '',
-        chamber: params['chamber'] || ''
+        chamber: params['chamber'] || '',
+        fromDateTime: params['fromDateTime'] ? new Date(params['fromDateTime']).toISOString().split('T')[0] : this.searchForm.get('fromDateTime')?.value,
+        toDateTime: params['toDateTime'] ? new Date(params['toDateTime']).toISOString().split('T')[0] : this.searchForm.get('toDateTime')?.value
       });
       this.pageIndex = Number(params['page'] || 0);
       this.pageSize = Number(params['pageSize'] || this.pageSize);
@@ -235,6 +428,14 @@ export class MemberDirectoryComponent implements OnInit {
     }
     if (formValues.chamber) {
       queryParams.chamber = formValues.chamber;
+    }
+    if (formValues.fromDateTime) {
+      // Store as YYYY-MM-DD format in URL for bookmarking
+      queryParams.fromDateTime = formValues.fromDateTime;
+    }
+    if (formValues.toDateTime) {
+      // Store as YYYY-MM-DD format in URL for bookmarking
+      queryParams.toDateTime = formValues.toDateTime;
     }
     // Pagination
     queryParams.page = this.pageIndex || 0;
@@ -270,17 +471,26 @@ export class MemberDirectoryComponent implements OnInit {
     if (formValues.chamber) {
       searchParams.chamber = formValues.chamber;
     }
+    if (formValues.fromDateTime) {
+      // Convert YYYY-MM-DD to API format: YYYY-MM-DDT00:00:00Z
+      searchParams.fromDateTime = `${formValues.fromDateTime}T00:00:00Z`;
+    }
+    if (formValues.toDateTime) {
+      // Convert YYYY-MM-DD to API format: YYYY-MM-DDT23:59:59Z
+      searchParams.toDateTime = `${formValues.toDateTime}T23:59:59Z`;
+    }
 
     this.membersService.getMembers(searchParams).subscribe({
-      next: (response) => {
+      next: (response: MemberSearchResponse) => {
         this.members = response.members || [];
-        this.totalMembers = this.members.length; // TODO: Get from API pagination
+        this.totalMembers = response.pagination?.total || 0;
         this.loading = false;
       },
       error: (error) => {
         console.error('Error loading members:', error);
         // For now, show empty results on error
         this.members = [];
+        this.totalMembers = 0;
         this.loading = false;
       }
     });
@@ -291,5 +501,16 @@ export class MemberDirectoryComponent implements OnInit {
     this.pageSize = event.pageSize;
     this.updateQueryParams();
     this.loadMembers();
+  }
+
+  onImageError(event: Event) {
+    const imgElement = event.target as HTMLImageElement;
+    if (imgElement) {
+      imgElement.style.display = 'none';
+      const nextSibling = imgElement.nextElementSibling as HTMLElement;
+      if (nextSibling) {
+        nextSibling.style.display = 'block';
+      }
+    }
   }
 }

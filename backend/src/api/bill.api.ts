@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { plainToClass } from 'class-transformer';
 import { validate } from 'class-validator';
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
 import { Request, Response } from 'express';
 import { Repository } from 'typeorm';
 import { BillDto } from '../../shared/Bill.model';

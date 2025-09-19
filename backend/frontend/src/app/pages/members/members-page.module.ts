@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { RouterModule, Routes } from '@angular/router';
 import { ReactiveFormsModule } from '@angular/forms';
 
@@ -15,10 +15,16 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatOptionModule } from '@angular/material/core';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatTableModule } from '@angular/material/table';
+import { MatSortModule } from '@angular/material/sort';
 
 import { MembersPageComponent } from './members-page.component';
 import { MemberProfileComponent } from './member-profile/member-profile.component';
 import { MemberDirectoryComponent } from './member-directory/member-directory.component';
+import { SponsoredLegislationComponent } from './sponsored-legislation/sponsored-legislation.component';
+import { CosponsoredLegislationComponent } from './cosponsored-legislation/cosponsored-legislation.component';
 import { SharedComponentsModule } from '../../components/shared/shared-components.module';
 
 const routes: Routes = [
@@ -33,6 +39,14 @@ const routes: Routes = [
       {
         path: ':bioguideId',
         component: MemberProfileComponent
+      },
+      {
+        path: ':bioguideId/sponsored-legislation',
+        component: SponsoredLegislationComponent
+      },
+      {
+        path: ':bioguideId/cosponsored-legislation',
+        component: CosponsoredLegislationComponent
       }
     ]
   }
@@ -42,7 +56,9 @@ const routes: Routes = [
   declarations: [
     MembersPageComponent,
     MemberProfileComponent,
-    MemberDirectoryComponent
+    MemberDirectoryComponent,
+    SponsoredLegislationComponent,
+    CosponsoredLegislationComponent
   ],
   imports: [
     CommonModule,
@@ -61,7 +77,14 @@ const routes: Routes = [
     MatFormFieldModule,
     MatOptionModule,
     MatDividerModule,
-    MatListModule
+    MatListModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatTableModule,
+    MatSortModule
+  ],
+  providers: [
+    DatePipe
   ]
 })
 export class MembersPageModule { }

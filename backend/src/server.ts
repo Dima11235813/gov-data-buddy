@@ -37,6 +37,20 @@ AppDataSource.initialize()
         //MEMBER
         router.get('/member', MembersController.getMembersByQuery);
         router.get('/member/:bioguideId', MembersController.getMemberDetails);
+        router.get('/member/congress/:congress', MembersController.getMembersByCongress);
+        router.get('/member/:bioguideId/sponsored-legislation', MembersController.getMemberSponsoredLegislation);
+        router.get('/member/:bioguideId/cosponsored-legislation', MembersController.getMemberCosponsoredLegislation);
+
+        //MEMBER PICTURES - must come before state routes to avoid conflicts
+        router.get('/member/:bioguideId/picture', MembersController.getMemberPicture);
+        router.get('/member/:bioguideId/picture/:pictureId', MembersController.getMemberPicture);
+        router.post('/member/:bioguideId/picture/refresh', MembersController.refreshMemberPicture);
+        router.get('/member/:bioguideId/picture/history', MembersController.getMemberPictureHistory);
+
+        //STATE ROUTES - less specific, so they come after picture routes
+        router.get('/member/:stateCode', MembersController.getMembersByState);
+        router.get('/member/:stateCode/:district', MembersController.getMembersByStateDistrict);
+        router.get('/member/congress/:congress/:stateCode/:district', MembersController.getMembersByCongressStateDistrict);
         //COMMITTEE
         router.get('/committee', CommitteesController.getCommitteesByQuery);
         router.get('/committee/:congress/:chamber', CommitteesController.getCommitteesByQuery);

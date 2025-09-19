@@ -9,14 +9,16 @@ As a developer, I need to implement advanced search and filtering capabilities f
 - Supports various use cases from citizen engagement to research
 
 ## Acceptance Criteria
-- [ ] Search by name (partial and full name matching)
-- [ ] Filter by state and district
-- [ ] Filter by political party
-- [ ] Filter by chamber (House/Senate)
-- [ ] Sort options (name, state, seniority)
-- [ ] Pagination for large result sets
-- [ ] Search result highlighting
-- [ ] Performance optimized queries
+- [x] Search by name (partial and full name matching)
+- [x] Filter by state and district
+- [x] Filter by political party
+- [x] Filter by chamber (House/Senate)
+- [x] Sort options (name, state, seniority)
+- [x] Pagination for large result sets
+- [x] Search result highlighting
+- [x] Performance optimized queries
+- [ ] Advanced search by congress number
+- [ ] Advanced search by congress + state + district combination
 
 ## Technical Details
 - Database indexing for search fields
@@ -27,11 +29,13 @@ As a developer, I need to implement advanced search and filtering capabilities f
 - Search query sanitization
 
 ## Definition of Done
-- [ ] All search and filter criteria work correctly
+- [ ] All basic search and filter criteria work correctly
 - [ ] Performance acceptable for 500+ members
 - [ ] Search results accurate and relevant
 - [ ] User interface responsive
 - [ ] Unit tests for search logic
+- [ ] Advanced search endpoints implemented (backend)
+- [ ] Frontend integration for advanced search
 - [ ] Code review completed
 
 ## Estimated Effort

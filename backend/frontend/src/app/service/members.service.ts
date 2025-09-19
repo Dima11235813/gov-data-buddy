@@ -15,6 +15,18 @@ export interface MemberSearchParams {
   chamber?: string;
   offset?: number;
   limit?: number;
+  fromDateTime?: string;
+  toDateTime?: string;
+}
+
+export interface MemberSearchResponse {
+  members: MemberDto[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 @Injectable({
@@ -25,7 +37,7 @@ export class MembersService {
 
   constructor(private http: HttpClient) { }
 
-  getMembers(params?: MemberSearchParams): Observable<{ members: MemberDto[] }> {
+  getMembers(params?: MemberSearchParams): Observable<MemberSearchResponse> {
     let httpParams = new HttpParams();
 
     if (params) {
@@ -38,18 +50,48 @@ export class MembersService {
       });
     }
 
-    return this.http.get<{ members: MemberDto[] }>(`${this.apiUrl}`, { params: httpParams });
+    return this.http.get<MemberSearchResponse>(`${this.apiUrl}`, { params: httpParams });
   }
 
   getMemberById(bioguideId: string): Observable<{ member: MemberDto }> {
     return this.http.get<{ member: MemberDto }>(`${this.apiUrl}/${bioguideId}`);
   }
 
-  searchMembers(query: string): Observable<{ members: MemberDto[] }> {
+  searchMembers(query: string): Observable<MemberSearchResponse> {
     const params = new HttpParams()
       .set('search', query)
       .set('limit', '50');
 
-    return this.http.get<{ members: MemberDto[] }>(`${this.apiUrl}`, { params });
+    return this.http.get<MemberSearchResponse>(`${this.apiUrl}`, { params });
+  }
+
+  getMemberSponsoredLegislation(bioguideId: string, params?: { offset?: number; limit?: number }): Observable<any> {
+    let httpParams = new HttpParams();
+
+    if (params) {
+      if (params.offset !== undefined) {
+        httpParams = httpParams.set('offset', params.offset.toString());
+      }
+      if (params.limit !== undefined) {
+        httpParams = httpParams.set('limit', params.limit.toString());
+      }
+    }
+
+    return this.http.get(`${this.apiUrl}/${bioguideId}/sponsored-legislation`, { params: httpParams });
+  }
+
+  getMemberCosponsoredLegislation(bioguideId: string, params?: { offset?: number; limit?: number }): Observable<any> {
+    let httpParams = new HttpParams();
+
+    if (params) {
+      if (params.offset !== undefined) {
+        httpParams = httpParams.set('offset', params.offset.toString());
+      }
+      if (params.limit !== undefined) {
+        httpParams = httpParams.set('limit', params.limit.toString());
+      }
+    }
+
+    return this.http.get(`${this.apiUrl}/${bioguideId}/cosponsored-legislation`, { params: httpParams });
   }
 }

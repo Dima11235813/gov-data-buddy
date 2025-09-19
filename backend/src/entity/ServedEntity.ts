@@ -1,29 +1,20 @@
 import 'reflect-metadata';
-import {
-    Column,
-} from 'typeorm';
-import { IsNotEmpty } from 'class-validator';
+import { Column } from 'typeorm';
 
-export class HouseTerm {
-    @Column('integer', { nullable: true })
-    end: number;
-
-    @Column('integer', { nullable: true })
+export interface HouseTerm {
+    end: number | null;
     start: number;
 }
 
-export class SenateTerm {
-    @Column('integer', { nullable: true })
-    end: number;
-
-    @Column('integer', { nullable: true })
+export interface SenateTerm {
+    end: number | null;
     start: number;
 }
 
 export class Served {
-    @Column(type => HouseTerm)
+    @Column({ type: 'json', nullable: true })
     House?: HouseTerm[];
 
-    @Column(type => SenateTerm)
+    @Column({ type: 'json', nullable: true })
     Senate?: SenateTerm[];
 }

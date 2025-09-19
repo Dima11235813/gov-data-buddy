@@ -61,3 +61,5 @@ Create comprehensive member profile pages that display detailed information abou
 - [Story 010-002: Implement Member Directory](./../stories/story-010-002-member-directory.md)
 - [Story 010-003: Add Member Search and Filtering](./../stories/story-010-003-member-search-filtering.md)
 - [Story 010-004: Integrate Member-Bill Relationships](./../stories/story-010-004-member-bill-integration.md)
+- [Story 010-005: Advanced Member Search with Congress/State/District Filtering](./../stories/story-010-005-advanced-member-search.md)
+- [Story 010-006: Member Details Page Enhancement](./../stories/story-010-006-member-details-enhancement.md)
