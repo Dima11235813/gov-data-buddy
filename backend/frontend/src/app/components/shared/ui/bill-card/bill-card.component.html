@@ -1,0 +1,28 @@
+<mat-card class="bill-card">
+  <mat-card-content>
+    <div class="bill-meta">
+      <span class="bill-number" *ngIf="bill?.number">{{ bill.type }}. {{ bill.number }}</span>
+      <span class="status-chip" [ngClass]="statusLabel | lowercase">{{ statusLabel }}</span>
+    </div>
+    <h3 class="bill-title">{{ bill?.title || bill?.number }}</h3>
+    <div class="bill-details">
+      <div class="detail">
+        <mat-icon>schedule</mat-icon>
+        <span>Introduced: {{ bill?.introducedDate || bill?.createDate | date:'M/d/y' }}</span>
+      </div>
+      <div class="detail" *ngIf="bill?.latestAction">
+        <mat-icon>flag</mat-icon>
+        <span>Last Action: {{ bill.latestAction.text }}</span>
+      </div>
+      <div class="detail" *ngIf="bill?.latestAction?.actionDate">
+        <mat-icon>event</mat-icon>
+        <span>Date: {{ bill.latestAction.actionDate | date:'M/d/y' }}</span>
+      </div>
+    </div>
+    <div class="actions">
+      <a mat-stroked-button color="primary" [href]="bill?.url" target="_blank" rel="noopener">View Details</a>
+    </div>
+  </mat-card-content>
+</mat-card>
+
+

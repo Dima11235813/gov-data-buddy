@@ -6,7 +6,8 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./bills-page.component.scss']
 })
 export class BillsPageComponent implements OnInit {
-  pageHeading = "Congressional Bills";
+  pageHeading = "Bills Database";
+  pageSubtitle = "Search and explore U.S. Congressional bills with detailed information, summaries, and real-time status updates.";
 
   constructor() { }
 

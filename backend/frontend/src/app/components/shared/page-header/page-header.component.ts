@@ -7,4 +7,6 @@ import { Component, Input } from '@angular/core';
 })
 export class PageHeaderComponent {
   @Input() pageHeading = 'Government Data Buddy';
+  @Input() subtitle: string | null = null;
+  @Input() showNav: boolean = false;
 }

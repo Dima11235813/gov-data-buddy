@@ -1,0 +1,13 @@
+<button mat-stroked-button [matMenuTriggerFor]="menu">
+  <mat-icon>filter_list</mat-icon>
+  {{ value === 'All' ? 'All Statuses' : value }}
+</button>
+<mat-menu #menu="matMenu">
+  <button mat-menu-item *ngFor="let option of options" (click)="onChange(option)">
+    <mat-icon *ngIf="value === option">check</mat-icon>
+    <span>{{ option === 'All' ? 'All Statuses' : option }}</span>
+  </button>
+  
+</mat-menu>
+
+

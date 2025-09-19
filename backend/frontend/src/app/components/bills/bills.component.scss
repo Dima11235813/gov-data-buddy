@@ -5,6 +5,13 @@
     margin-bottom: 1rem;
 
     mat-card-content {
+      .toolbar {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
       .loading {
         text-align: center;
         padding: 2rem;
@@ -19,35 +26,7 @@
         }
       }
 
-      .bills-list {
-        .bill-item {
-          border-bottom: 1px solid #e0e0e0;
-          padding: 1.5rem 0;
-
-          &:last-child {
-            border-bottom: none;
-          }
-
-          h3 {
-            margin: 0 0 1rem 0;
-            color: #1e3a8a;
-            font-size: 1.2rem;
-          }
-
-          p {
-            margin: 0.5rem 0;
-            color: #555;
-
-            strong {
-              color: #333;
-            }
-          }
-
-          button {
-            margin-top: 1rem;
-          }
-        }
-      }
+      .bills-list {}
 
       .no-bills {
         text-align: center;
