@@ -19,66 +19,16 @@ import { AppDataSource } from "../datasource/sqlite-datasource";
 import { Member } from "../entity/MemberEntity";
 import { MemberPicture } from "../entity/MemberPictureEntity";
 import { parseDateParams, createDateRange } from "../../shared/utils/date-utils";
-
-// Runtime cache for member data to avoid repeated database queries
-const memberCache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+import { LoggerService } from '../service/logger.service';
+import { createMemberCacheService, MemberCacheService } from '../service/member-cache.service';
 
 export namespace MembersController {
     const memberRepository = AppDataSource.manager.getRepository(Member);
+    const pictureRepository = AppDataSource.manager.getRepository(MemberPicture);
 
-    // Helper function to get member data with runtime caching
-    const getCachedMemberData = async (bioguideId: string): Promise<any | null> => {
-        // Check runtime cache first
-        const cached = memberCache.get(bioguideId);
-        if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
-            console.log(`Returning runtime cached member: ${bioguideId}`);
-            return cached.data;
-        }
-
-        // Check database cache
-        let cachedMember: Member | null = null;
-        try {
-            cachedMember = await memberRepository.findOneBy({ bioguideId });
-        } catch (dbError) {
-            console.warn('Database query failed, falling back to API:', dbError);
-        }
-
-        if (cachedMember) {
-            console.log(`Returning database cached member: ${bioguideId}`);
-
-            // Create response object with member data
-            let responseData: any = { ...cachedMember };
-
-            // Attach current picture data if available
-            try {
-                const pictureRepository = memberRepository.manager.getRepository(MemberPicture);
-                const currentPicture = await getCurrentMemberPicture(bioguideId, pictureRepository);
-                if (currentPicture) {
-                    const pictureData = getMemberPictureData(currentPicture);
-                    if (pictureData) {
-                        responseData.currentPicture = {
-                            id: currentPicture.id,
-                            base64Data: pictureData.base64Data,
-                            contentType: pictureData.contentType,
-                            version: currentPicture.version,
-                            isCurrentVersion: currentPicture.isCurrentVersion,
-                            attribution: currentPicture.attribution
-                        };
-                    }
-                }
-            } catch (pictureError) {
-                console.warn(`Failed to attach picture data for ${bioguideId}:`, pictureError);
-            }
-
-            // Store in runtime cache
-            memberCache.set(bioguideId, { data: responseData, timestamp: Date.now() });
-
-            return responseData;
-        }
-
-        return null;
-    };
+    // Initialize services
+    const logger = new LoggerService();
+    const memberCacheService = createMemberCacheService(logger, memberRepository, pictureRepository);
 
     export const getMembersByQuery = async (req: Request, res: Response) => {
         console.log(`getMembersByQuery`)
@@ -202,28 +152,66 @@ export namespace MembersController {
 
     export const getMemberDetails = async (req: Request, res: Response) => {
         const { bioguideId } = req.params;
+        const startTime = Date.now();
 
         try {
-            // Try to get from runtime cache first, then database cache
-            const cachedData = await getCachedMemberData(bioguideId);
+            logger.info(`Processing member details request`, {
+                operation: 'get-member-details',
+                bioguideId,
+                endpoint: req.originalUrl
+            });
+
+            // Try to get from cache first (runtime + database)
+            const cachedData = await memberCacheService.getMemberData(bioguideId);
             if (cachedData) {
+                logger.logPerformance('get-member-details-total', Date.now() - startTime, {
+                    operation: 'get-member-details-cache-hit',
+                    bioguideId,
+                    cache: { hit: true, source: 'service' }
+                });
+
                 res.json({ member: cachedData });
                 return;
             }
 
-            // If not in cache, fetch from API
+            // Cache miss - fetch from API
+            logger.logCacheMiss('get-member-details', bioguideId, {
+                operation: 'get-member-details-cache-miss',
+                bioguideId
+            });
+
+            const apiStartTime = Date.now();
             const data = await fetchMemberDetailsFromAPI(bioguideId, memberRepository);
 
-            // Store the fresh data in runtime cache
+            logger.logApiCall(
+                `https://api.congress.gov/v3/member/${bioguideId}`,
+                'GET',
+                200,
+                Date.now() - apiStartTime,
+                {
+                    operation: 'fetch-member-api',
+                    bioguideId
+                }
+            );
+
+            // Store the fresh data in cache
             if (data.member) {
-                memberCache.set(bioguideId, { data: data.member, timestamp: Date.now() });
+                await memberCacheService.setMemberData(bioguideId, data.member);
+                logger.info(`Stored fresh member data in cache: ${bioguideId}`, {
+                    operation: 'member-details-cache-store',
+                    bioguideId
+                });
             }
+
+            logger.logPerformance('get-member-details-total', Date.now() - startTime, {
+                operation: 'get-member-details-total',
+                bioguideId,
+                cache: { hit: false }
+            });
 
             res.json(data);
 
         } catch (error) {
-            console.error(`Error fetching member ${bioguideId}:`, error);
-
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             let statusCode = 500;
             let message = 'An error occurred while fetching member data.';
@@ -235,6 +223,12 @@ export namespace MembersController {
                 statusCode = 429;
                 message = errorMessage;
             }
+
+            logger.error(`Error fetching member details: ${bioguideId}`, {
+                operation: 'get-member-details-error',
+                bioguideId,
+                endpoint: req.originalUrl
+            }, error as Error);
 
             res.status(statusCode).json({
                 message,

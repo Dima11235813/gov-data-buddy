@@ -1,0 +1,11 @@
+{
+    "mcpServers": {
+        "mcp-frontend-testing": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "mcp-frontend-testing"
+            ]
+        }
+    }
+}
