@@ -1,0 +1,153 @@
+<div id="bill-details-container">
+  <page-header [pageHeading]="pageHeading" [subtitle]="pageSubtitle"></page-header>
+
+  <!-- Loading State -->
+  <div class="loading" *ngIf="loading">
+    <mat-spinner></mat-spinner>
+    <p>Loading bill details...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="error" *ngIf="error && !loading">
+    <mat-card>
+      <mat-card-content>
+        <div class="error-content">
+          <mat-icon color="warn">error</mat-icon>
+          <h3>Error Loading Bill Details</h3>
+          <p>{{ error }}</p>
+          <button mat-raised-button color="primary" (click)="goBack()">Back to Bills</button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Bill Details Content -->
+  <div class="bill-details-content" *ngIf="!loading && !error">
+    <mat-card *ngIf="billDetails$ | async as billDetails">
+      <mat-card-content>
+        <!-- Bill Header -->
+        <div class="bill-header">
+          <div class="bill-title-section">
+            <h1 class="bill-title">{{ billDetails.title }}</h1>
+            <div class="bill-number">{{ billDetails.type | uppercase }}. {{ billDetails.number }}</div>
+            <div class="bill-status-chip" [ngClass]="getStatusLabel(billDetails.latestAction) | lowercase">
+              {{ getStatusLabel(billDetails.latestAction) }}
+            </div>
+          </div>
+          <div class="bill-meta">
+            <div class="meta-item">
+              <mat-icon>calendar_today</mat-icon>
+              <span>Introduced: {{ billDetails.introducedDate | date:'M/d/y' }}</span>
+            </div>
+            <div class="meta-item">
+              <mat-icon>account_balance</mat-icon>
+              <span>Congress: {{ billDetails.congress }}</span>
+            </div>
+            <div class="meta-item">
+              <mat-icon>location_city</mat-icon>
+              <span>Origin: {{ billDetails.originChamber | titlecase }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Latest Action -->
+        <div class="section" *ngIf="billDetails.latestAction">
+          <h3>Latest Action</h3>
+          <div class="latest-action">
+            <p>{{ billDetails.latestAction.text }}</p>
+            <div class="action-date" *ngIf="billDetails.latestAction.actionDate">
+              <mat-icon>schedule</mat-icon>
+              <span>{{ billDetails.latestAction.actionDate | date:'M/d/y' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sponsors -->
+        <div class="section" *ngIf="billDetails.sponsors && billDetails.sponsors.length > 0">
+          <h3>Sponsors</h3>
+          <div class="sponsors-list">
+            <div class="sponsor" *ngFor="let sponsor of billDetails.sponsors">
+              <mat-icon>person</mat-icon>
+              <span>{{ sponsor.fullName || sponsor.firstName + ' ' + sponsor.lastName }}</span>
+              <span class="sponsor-party" *ngIf="sponsor.party">({{ sponsor.party }})</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Committees -->
+        <div class="section" *ngIf="billDetails.committees">
+          <h3>Committees</h3>
+          <div class="committees-info">
+            <p>{{ billDetails.committees.count }} committee(s) involved</p>
+            <a mat-stroked-button [href]="billDetails.committees.url" target="_blank" rel="noopener">
+              View Committees
+              <mat-icon>open_in_new</mat-icon>
+            </a>
+          </div>
+        </div>
+
+        <!-- Policy Area -->
+        <div class="section" *ngIf="billDetails.policyArea">
+          <h3>Policy Area</h3>
+          <p>{{ billDetails.policyArea.name }}</p>
+        </div>
+
+        <!-- Related Bills -->
+        <div class="section" *ngIf="billDetails.relatedBills">
+          <h3>Related Bills</h3>
+          <div class="related-bills-info">
+            <p>{{ billDetails.relatedBills.count }} related bill(s)</p>
+            <a mat-stroked-button [href]="billDetails.relatedBills.url" target="_blank" rel="noopener">
+              View Related Bills
+              <mat-icon>open_in_new</mat-icon>
+            </a>
+          </div>
+        </div>
+
+        <!-- Text Versions -->
+        <div class="section" *ngIf="billDetails.textVersions">
+          <h3>Text Versions</h3>
+          <div class="text-versions-info">
+            <p>{{ billDetails.textVersions.count }} version(s) available</p>
+            <a mat-stroked-button [href]="billDetails.textVersions.url" target="_blank" rel="noopener">
+              View Text Versions
+              <mat-icon>open_in_new</mat-icon>
+            </a>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="section" *ngIf="billDetails.actions">
+          <h3>Actions</h3>
+          <div class="actions-info">
+            <p>{{ billDetails.actions.count }} action(s) recorded</p>
+            <a mat-stroked-button [href]="billDetails.actions.url" target="_blank" rel="noopener">
+              View All Actions
+              <mat-icon>open_in_new</mat-icon>
+            </a>
+          </div>
+        </div>
+
+        <!-- Cosponsors -->
+        <div class="section" *ngIf="billDetails.cosponsors">
+          <h3>Co-sponsors</h3>
+          <div class="cosponsors-info">
+            <p>{{ billDetails.cosponsors.count }} co-sponsor(s)</p>
+            <a mat-stroked-button [href]="billDetails.cosponsors.url" target="_blank" rel="noopener">
+              View Co-sponsors
+              <mat-icon>open_in_new</mat-icon>
+            </a>
+          </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation-section">
+          <button mat-raised-button color="primary" (click)="goBack()">
+            <mat-icon>arrow_back</mat-icon>
+            Back to Bills
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

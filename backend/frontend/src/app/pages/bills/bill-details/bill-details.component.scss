@@ -1,0 +1,263 @@
+#bill-details-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+
+  .loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+
+    mat-spinner {
+      margin-bottom: 16px;
+    }
+
+    p {
+      color: #666;
+      font-size: 16px;
+    }
+  }
+
+  .error {
+    margin-top: 20px;
+
+    .error-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 40px;
+
+      mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        margin-bottom: 16px;
+      }
+
+      h3 {
+        margin-bottom: 16px;
+        color: #f44336;
+      }
+
+      p {
+        margin-bottom: 24px;
+        color: #666;
+      }
+    }
+  }
+
+  .bill-details-content {
+    margin-top: 20px;
+
+    mat-card {
+      margin-bottom: 20px;
+
+      mat-card-content {
+        padding: 24px;
+      }
+    }
+
+    .bill-header {
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid #e0e0e0;
+
+      .bill-title-section {
+        margin-bottom: 16px;
+
+        .bill-title {
+          font-size: 28px;
+          font-weight: 500;
+          margin-bottom: 8px;
+          line-height: 1.2;
+        }
+
+        .bill-number {
+          font-size: 18px;
+          color: #666;
+          margin-bottom: 12px;
+        }
+
+        .bill-status-chip {
+          display: inline-block;
+          padding: 4px 12px;
+          border-radius: 16px;
+          font-size: 12px;
+          font-weight: 500;
+          text-transform: uppercase;
+
+          &.enacted {
+            background-color: #4caf50;
+            color: white;
+          }
+
+          &.passed-house {
+            background-color: #2196f3;
+            color: white;
+          }
+
+          &.in-committee {
+            background-color: #ff9800;
+            color: white;
+          }
+
+          &.introduced {
+            background-color: #9e9e9e;
+            color: white;
+          }
+        }
+      }
+
+      .bill-meta {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+
+        .meta-item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: #666;
+
+          mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+          }
+        }
+      }
+    }
+
+    .section {
+      margin-bottom: 24px;
+
+      h3 {
+        font-size: 20px;
+        font-weight: 500;
+        margin-bottom: 16px;
+        color: #333;
+      }
+
+      .latest-action {
+        p {
+          margin-bottom: 8px;
+          line-height: 1.5;
+        }
+
+        .action-date {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: #666;
+          font-size: 14px;
+
+          mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+          }
+        }
+      }
+
+      .sponsors-list {
+        .sponsor {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 8px;
+
+          mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+            color: #666;
+          }
+
+          .sponsor-party {
+            color: #666;
+            font-size: 14px;
+          }
+        }
+      }
+
+      .committees-info,
+      .related-bills-info,
+      .text-versions-info,
+      .actions-info,
+      .cosponsors-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        p {
+          margin: 0;
+          color: #666;
+        }
+
+        a {
+          mat-icon {
+            margin-left: 8px;
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+          }
+        }
+      }
+    }
+
+    .navigation-section {
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid #e0e0e0;
+      display: flex;
+      justify-content: flex-start;
+
+      button {
+        mat-icon {
+          margin-right: 8px;
+        }
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  #bill-details-container {
+    padding: 16px;
+
+    .bill-details-content {
+      .bill-header {
+        .bill-title-section {
+          .bill-title {
+            font-size: 24px;
+          }
+        }
+
+        .bill-meta {
+          flex-direction: column;
+          gap: 12px;
+        }
+      }
+
+      .section {
+        .committees-info,
+        .related-bills-info,
+        .text-versions-info,
+        .actions-info,
+        .cosponsors-info {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 12px;
+
+          a {
+            align-self: flex-end;
+          }
+        }
+      }
+    }
+  }
+}

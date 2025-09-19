@@ -19,7 +19,13 @@ export class BillsService {
     const composedUrl = `${this.API_URL_ROOT}/bill${url}`
     return this.http.get<any>(composedUrl)
   }
-  getBillDetails = (url: string): Observable<any> => {
+  getBillDetails(congress: string, billType: string, billNumber: string): Observable<any> {
+    const url = `${this.API_URL_ROOT}/bill/${congress}/${billType}/${billNumber}`;
+    console.log('Fetching bill details from:', url);
+    return this.http.get<any>(url);
+  }
+
+  getBillDetailsByUrl = (url: string): Observable<any> => {
     const composedUrl = `${this.API_URL_ROOT}/bill${url.split('bill')[1]}`
     console.log("composedUrl")
     console.log(composedUrl)

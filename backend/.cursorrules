@@ -62,17 +62,75 @@ export class EntityNameEntity {
 ```
 
 ### 2. Model/DTO Interfaces
+All DTOs must follow the enum-based property naming pattern for type safety and consistency.
+
+**Required Pattern:**
 ```typescript
 export enum EntityPropEnum {
-    id = "id",
     propertyName = "propertyName",
+    anotherProperty = "anotherProperty",
+    // ... all properties as enum values
 }
 
 export interface EntityDto {
-    [EntityPropEnum.id]: number;
-    [EntityPropEnum.propertyName]: string;
+    [EntityPropEnum.propertyName]: PropertyType;
+    [EntityPropEnum.anotherProperty]: AnotherPropertyType;
 }
 ```
+
+**Real Examples from Codebase:**
+```typescript
+// From Bill.model.ts
+export enum BillPropEnum {
+    id = "id",
+    congress = "congress",
+    number = "number",
+    title = "title",
+    type = "type",
+    latestAction = "latestAction",
+    url = "url"
+}
+
+export interface BillDto {
+    [BillPropEnum.id]: number;
+    [BillPropEnum.congress]: number;
+    [BillPropEnum.number]: string;
+    [BillPropEnum.title]: string;
+    [BillPropEnum.type]: string;
+    [BillPropEnum.latestAction]: ILatestAction;
+    [BillPropEnum.url]: string;
+}
+
+// From Member.model.ts
+export enum MemberPropEnum {
+    bioguideId = "bioguideId",
+    name = "name",
+    party = "party",
+    state = "state",
+    url = "url"
+}
+
+export interface MemberDto {
+    [MemberPropEnum.bioguideId]: string;
+    [MemberPropEnum.name]: string;
+    [MemberPropEnum.party]: string;
+    [MemberPropEnum.state]: string;
+    [MemberPropEnum.url]: string;
+}
+```
+
+**Benefits:**
+- Type-safe property access
+- IDE autocomplete and refactoring support
+- Consistent naming across the codebase
+- Easier debugging and maintenance
+
+**Implementation Checklist:**
+- [ ] Create enum with all property names as string values
+- [ ] Use computed property names `[Enum.key]: Type` in interface
+- [ ] Export both enum and interface
+- [ ] Add proper TypeScript types for all properties
+- [ ] Include JSDoc comments for complex properties
 
 ### 3. Controller Namespaces
 ```typescript

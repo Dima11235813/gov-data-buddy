@@ -1,17 +1,20 @@
 # Story 006-002: Navigate to Bill Details
 
 ## Description
-Allow users to open the details for a bill from the Bills list via a "View Details" action consistent with the designs.
+Allow users to navigate to detailed bill information from the Bills list via a "View Details" action that routes to the internal bill details page.
 
 ## Acceptance Criteria
-- Each bill card includes a primary action to view details.
-- The action opens the bill details in a new tab if the source URL is external, or navigates to an internal route if available.
-- Accessibility: action has discernible text and focus styles.
+- Each bill card includes a primary action button to view details.
+- The action navigates to internal bill details route: `/bills/details/{congress}/{billType}/{billNumber}`
+- Fallback to external URL if bill parameters are not available
+- Accessibility: button has discernible text and focus styles.
 
 ## Implementation Notes
-- Current data includes a `url` field to Congress.gov; use as `href` with `target="_blank"` until internal details page is implemented.
-- Reuse `BillCardComponent` action area.
+- Updated `BillCardComponent` to use router navigation instead of external links
+- Added `viewDetails()` method that checks for bill parameters and navigates accordingly
+- Route configured in bills page routing module
 
 ## Definition of Done
-- Open in new tab works for all listed bills that have a URL.
-- Lints pass.
+- Navigation to bill details page works for all listed bills with valid parameters
+- Lints pass
+- Component properly handles missing bill data

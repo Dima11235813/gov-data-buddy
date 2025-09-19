@@ -6,6 +6,10 @@ const routes: Routes = [
   {
     path: '',
     component: BillsPageComponent
+  },
+  {
+    path: 'details',
+    loadChildren: () => import('./bill-details/bill-details.module').then(m => m.BillDetailsModule)
   }
 ];
 
