@@ -1,19 +1,20 @@
 <div class="splash-container">
   <div class="hero-section">
     <div class="hero-content">
-      <h1 class="hero-title">Government Data Buddy</h1>
+      <h1 class="hero-title">Government Data, <span class="highlight">Made Simple</span></h1>
       <p class="hero-subtitle">
-        Your comprehensive companion for understanding and tracking United States congressional activities
+        Access a comprehensive database of U.S. Congressional information with an intuitive interface,
+        enterprise-grade architecture, and intelligent caching.
       </p>
       <div class="hero-actions">
-        <button mat-raised-button color="primary" routerLink="/bills" class="cta-button">
-          <mat-icon>description</mat-icon>
-          Explore Bills
-        </button>
-        <button mat-raised-button color="accent" routerLink="/committee" class="cta-button">
-          <mat-icon>account_balance</mat-icon>
-          Browse Committees
-        </button>
+        <a class="cta-button primary" routerLink="/bills"><mat-icon>description</mat-icon> Start Your Search</a>
+        <a class="cta-button" routerLink="/bills"><mat-icon>dataset</mat-icon> See All Data Sources</a>
+      </div>
+      <div class="hero-metrics">
+        <div class="metric"><strong>1000s</strong><span>Bills & Laws</span></div>
+        <div class="metric"><strong>500+</strong><span>Members</span></div>
+        <div class="metric"><strong>90%</strong><span>Faster API</span></div>
+        <div class="metric"><strong>99.9%</strong><span>Uptime</span></div>
       </div>
     </div>
     <div class="hero-image">
@@ -24,26 +25,14 @@
   <div class="features-section">
     <h2 class="section-title">What You Can Do</h2>
     <div class="features-grid">
-      <div class="feature-card">
-        <mat-icon class="feature-icon">search</mat-icon>
-        <h3>Track Legislation</h3>
-        <p>Follow bills from introduction through committee review to final passage. Stay informed about the laws shaping our nation.</p>
-      </div>
-      <div class="feature-card">
-        <mat-icon class="feature-icon">groups</mat-icon>
-        <h3>Explore Committees</h3>
-        <p>Discover congressional committees and their subcommittees. Understand which committees handle specific policy areas.</p>
-      </div>
-      <div class="feature-card">
-        <mat-icon class="feature-icon">person</mat-icon>
-        <h3>Member Information</h3>
-        <p>Access detailed information about congressional members, their roles, and legislative activities.</p>
-      </div>
-      <div class="feature-card">
-        <mat-icon class="feature-icon">timeline</mat-icon>
-        <h3>Real-time Updates</h3>
-        <p>Get the latest information from official government sources with automatic updates and comprehensive search.</p>
-      </div>
+      <app-button-card routerLink="/bills" icon="gavel" title="Bills"
+        description="Track every piece of legislation with full text, summaries, and real-time status updates."></app-button-card>
+      <app-button-card routerLink="/bills" icon="balance" title="Laws"
+        description="Find enacted Public and Private Laws, including their legislative history."></app-button-card>
+      <app-button-card routerLink="/committee" icon="groups" title="Members of Congress"
+        description="Biographies, sponsored legislation, and contact information for every member."></app-button-card>
+      <app-button-card routerLink="/committee" icon="account_balance" title="Committees"
+        description="Committee structures, rosters, meeting schedules, and reports."></app-button-card>
     </div>
   </div>
 
@@ -74,13 +63,11 @@
   </div>
 
   <div class="cta-section">
-    <h2>Ready to Explore?</h2>
-    <p>Join thousands of users who rely on Government Data Buddy for their legislative research needs.</p>
+    <h2>Ready to Explore Congressional Data?</h2>
+    <p>Start exploring the full range of Congressional data with our user‑friendly interface and enterprise‑grade performance.</p>
     <div class="cta-buttons">
-      <button mat-raised-button color="primary" routerLink="/bills" class="cta-button-large">
-        <mat-icon>arrow_forward</mat-icon>
-        Start Exploring Bills
-      </button>
+      <a class="cta-button primary large" routerLink="/bills"><mat-icon>description</mat-icon> Browse Bills</a>
+      <a class="cta-button large" routerLink="/committee"><mat-icon>account_balance</mat-icon> Explore Committees</a>
     </div>
   </div>
 </div>

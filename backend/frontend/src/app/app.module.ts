@@ -7,6 +7,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MaterialModule } from './shared/material/material.module';
+import { SharedComponentsModule } from './components/shared/shared-components.module';
 import { FriendlyTimePipe } from './pipe/display-time-ago.pipe';
 import { AppConfigService } from './service/app-config/app-config.service';
 import { LoggingService } from './service/logging/logging.service';
@@ -27,8 +28,8 @@ export const initConfig = (configService: AppConfigService) => configService.ini
     RouterModule,
     BrowserAnimationsModule,
     HttpClientModule,
-    MaterialModule
-    // SharedComponentsModule
+    MaterialModule,
+    SharedComponentsModule
   ],
   providers: [
     {

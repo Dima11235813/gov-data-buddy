@@ -1,6 +1,6 @@
 .splash-container {
   min-height: calc(100vh - 64px);
-  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, #0b2b6b 0%, #1e40af 35%, #2563eb 100%);
   color: white;
   padding-top: 2rem;
 }
@@ -19,15 +19,14 @@
     max-width: 600px;
 
     .hero-title {
-      font-size: 3.5rem;
-      font-weight: 700;
+      font-size: 3.2rem;
+      font-weight: 800;
       margin-bottom: 1rem;
-      line-height: 1.2;
-      background: linear-gradient(45deg, #ffffff, #e0e7ff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      line-height: 1.15;
+      letter-spacing: 0.2px;
     }
+
+    .hero-title .highlight { color: #fbbf24; }
 
     .hero-subtitle {
       font-size: 1.25rem;
@@ -42,19 +41,39 @@
       flex-wrap: wrap;
 
       .cta-button {
-        display: flex;
+        display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        padding: 1rem 2rem;
-        font-size: 1.1rem;
-        font-weight: 500;
-        border-radius: 8px;
-        text-transform: none;
+        padding: 0.9rem 1.4rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 10px;
+        text-decoration: none;
+        color: #0b2b6b;
+        background: #ffffff;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
 
-        mat-icon {
-          font-size: 1.2rem;
-        }
+      .cta-button.primary { background: #1d4ed8; color: #ffffff; }
+      .cta-button.primary mat-icon { color: #ffffff; }
+      .cta-button mat-icon { font-size: 20px; }
+    }
+
+    .hero-metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(100px, 1fr));
+      gap: 1.2rem;
+      margin-top: 2rem;
+      max-width: 600px;
+
+      .metric {
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 0.8rem 1rem;
+        border-radius: 10px;
+        text-align: center;
+        strong { font-size: 1.1rem; display: block; }
+        span { font-size: 0.85rem; opacity: 0.9; }
       }
     }
   }
@@ -87,42 +106,10 @@
 
   .features-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.2rem;
     max-width: 1200px;
     margin: 0 auto;
-
-    .feature-card {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      border-radius: 12px;
-      padding: 2rem;
-      text-align: center;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-
-      &:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      }
-
-      .feature-icon {
-        font-size: 4rem;
-        margin-bottom: 1rem;
-        opacity: 0.9;
-      }
-
-      h3 {
-        font-size: 1.5rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
-      }
-
-      p {
-        line-height: 1.6;
-        opacity: 0.9;
-      }
-    }
   }
 }
 
@@ -193,21 +180,26 @@
   }
 
   .cta-buttons {
-    .cta-button-large {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+
+    .cta-button {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      padding: 1.2rem 3rem;
-      font-size: 1.2rem;
-      font-weight: 600;
-      border-radius: 8px;
-      text-transform: none;
+      padding: 0.9rem 1.6rem;
+      border-radius: 10px;
+      text-decoration: none;
+      background: #ffffff;
+      color: #0b2b6b;
+      font-weight: 700;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-
-      mat-icon {
-        font-size: 1.4rem;
-      }
     }
+
+    .cta-button.primary { background: #1d4ed8; color: #ffffff; }
+    .cta-button.large { padding: 1.1rem 2.2rem; font-size: 1.1rem; }
   }
 }
 
